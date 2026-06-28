@@ -1,0 +1,1 @@
+<svelte:head><title>About — AI Copyright Legal</title></svelte:head><section class="section"><p class="eyebrow">About</p><h1>Independent AI copyright law coverage.</h1><p class="lede">AI Copyright Legal tracks lawsuits, regulation, and compliance practices for teams building and publishing with AI.</p></section>

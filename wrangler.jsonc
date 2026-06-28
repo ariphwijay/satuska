@@ -1,0 +1,20 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "satuska",
+	"compatibility_date": "2026-06-28",
+	"compatibility_flags": ["nodejs_als"],
+	"pages_build_output_dir": ".svelte-kit/cloudflare",
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "aicopyrightlegal",
+			"database_id": "466e0c7e-3142-465a-bcc8-d4a893ad674e"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "IMAGES",
+			"bucket_name": "aicopyrightlegal-images"
+		}
+	]
+}

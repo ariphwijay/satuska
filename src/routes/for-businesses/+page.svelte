@@ -1,0 +1,1 @@
+<svelte:head><title>For Businesses — AI Copyright Legal</title></svelte:head><section class="section"><p class="eyebrow">For businesses</p><h1>Ship AI features with better copyright controls.</h1><p class="lede">Vendor review, policy templates, risk triage, and operational controls for product, legal, and marketing teams.</p></section>

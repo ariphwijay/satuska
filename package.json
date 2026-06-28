@@ -1,0 +1,31 @@
+{
+	"name": "satuska",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "wrangler pages dev .svelte-kit/cloudflare --port 4173",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"gen": "wrangler types"
+	},
+	"notes": {
+		"wrangler-types": "On this macOS 12 host, wrangler runtime type generation fails because workerd now requires macOS 13.5+. worker-configuration.d.ts is maintained manually for local checks."
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-cloudflare": "^7.2.8",
+		"@sveltejs/kit": "^2.63.0",
+		"@sveltejs/vite-plugin-svelte": "^7.1.2",
+		"@tailwindcss/typography": "^0.5.19",
+		"@tailwindcss/vite": "^4.3.0",
+		"svelte": "^5.56.1",
+		"svelte-check": "^4.6.0",
+		"tailwindcss": "^4.3.0",
+		"typescript": "^6.0.3",
+		"vite": "^8.0.16",
+		"wrangler": "^4.97.0"
+	}
+}

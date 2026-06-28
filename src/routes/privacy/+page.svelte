@@ -1,0 +1,1 @@
+<svelte:head><title>Privacy — AI Copyright Legal</title></svelte:head><section class="section"><p class="eyebrow">Privacy</p><h1>Privacy policy</h1><p class="lede">This starter page is ready for final legal copy before launch.</p></section>

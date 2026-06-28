@@ -1,0 +1,1 @@
+<svelte:head><title>Terms — AI Copyright Legal</title></svelte:head><section class="section"><p class="eyebrow">Terms</p><h1>Terms of use</h1><p class="lede">Content is informational and not legal advice. Consult qualified counsel for specific legal questions.</p></section>
