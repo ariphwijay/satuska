@@ -13,6 +13,7 @@
 **Primary stack:** SvelteKit + Cloudflare Pages + D1 + R2  
 **What it supports:**
 - Public home improvement content site
+- Project setup layer for future multi-site operation
 - Dynamic article/detail pages
 - Static evergreen service and guide pages
 - Local SEO landing pages
@@ -33,8 +34,13 @@
 - Content agents
 - Owner/admin
 
-**Core principle:**
+### Core principle:
 One platform, one codebase, modular by domain. Satuska should work cleanly as a **blog + guest-post business first**, while allowing local SEO pages and affiliate surfaces to be enabled later without rebuilding the system.
+
+### Product framing
+- **Core mode:** blog + guest-post business
+- **Optional modules:** local SEO, affiliate, sponsored placements
+- **Future platform mode:** multi-site control layer from one operator workflow
 
 **Suggested local project root:**
 - use `~/projects/<project-slug>`
@@ -215,6 +221,7 @@ Core entities should include at least:
 The admin is an **operator-first dashboard**, not just a form collection.
 
 ### Main functions
+- project setup per site
 - content CRUD
 - slug + SEO management
 - status workflow
@@ -235,6 +242,7 @@ The admin is an **operator-first dashboard**, not just a form collection.
 
 ### Recommended modules
 - Dashboard overview
+- Project setup
 - Content list
 - Content editor
 - Location pages
@@ -249,10 +257,25 @@ The admin is an **operator-first dashboard**, not just a form collection.
 - Reports / monitoring (phase 2)
 
 ### Admin workflow groups
+- **Setup** — site identity, domain, monetization mode, module toggles, taxonomy defaults
 - **Editorial** — posts, categories, internal links
 - **Local SEO** — locations, services, location-service pages *(optional module)*
 - **Monetization** — guest posts, sponsor pages, affiliate pages, offers
 - **Operations** — media, SEO review, settings
+
+### Project setup module
+Project setup should be designed so it can later support **multi-site management**.
+
+Recommended setup controls:
+- site name / brand profile
+- primary domain / preview domain
+- niche label
+- monetization mode toggles: guest post / affiliate / sponsor
+- module toggles: blog-only / local SEO / affiliate
+- taxonomy seed defaults
+- publishing defaults
+- SEO defaults
+- analytics / verification placeholders
 
 ---
 
@@ -319,6 +342,19 @@ Recommended states:
 - `scheduled`
 - `published`
 - `refresh_needed`
+
+### Strategy and workflow features worth reusing
+The platform should reuse these product ideas for the admin workflow:
+- **step-based navigation** instead of flat menus
+- **project setup wizard** for initial configuration
+- **progress states** such as current / upcoming / optional / complete
+- **core vs optional module framing** so blog-only mode stays simple
+- **topic map / category map builder** for planning content clusters
+- **internal link matrix** for mapping hub ↔ support ↔ monetization pages
+- **brief generator** for converting topic plans into article tasks
+- **production queue** for draft → review → publish flow
+- **audit layer** for orphan pages, weak links, disclosure gaps, and thin pages
+- **rule cards** that show goal, inputs, rules, and outputs per module
 
 ---
 
@@ -631,6 +667,7 @@ src/
         +layout.server.ts
         +layout.svelte
         +page.svelte
+        setup/
         content/
         locations/          # optional local SEO module
         services/           # optional local SEO module
@@ -702,6 +739,8 @@ Public-facing content modules:
 ### Admin components
 Dashboard modules:
 - sidebar
+- setup wizard
+- site switcher (future multi-site)
 - content table
 - editor form
 - status badge
@@ -718,6 +757,9 @@ Examples for Satuska:
 - service-area grid
 - city cluster links
 - room/category cluster cards
+- topic map board
+- internal link matrix panel
+- brief queue cards
 - guest-post pricing / package blocks
 - affiliate comparison sections
 
@@ -777,6 +819,8 @@ Protect:
 
 The platform should be able to evolve into:
 - multi-site setup
+- site switcher + per-site settings isolation
+- shared operator dashboard across multiple sites
 - richer taxonomy
 - richer workflow states
 - revision history
