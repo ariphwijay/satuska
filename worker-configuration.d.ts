@@ -30,6 +30,8 @@ interface Env {
 	IMAGES: R2Bucket;
 	DB: D1Database;
 	API_KEY?: string;
+	ADMIN_PASSWORD?: string;
+	ADMIN_SESSION_SECRET?: string;
 }
 
 declare namespace Cloudflare {
@@ -37,5 +39,7 @@ declare namespace Cloudflare {
 		IMAGES: R2Bucket;
 		DB: D1Database;
 		API_KEY?: string;
+		ADMIN_PASSWORD?: string;
+		ADMIN_SESSION_SECRET?: string;
 	}
 }

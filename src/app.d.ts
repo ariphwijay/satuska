@@ -6,9 +6,17 @@ declare global {
 				DB?: D1Database;
 				IMAGES?: R2Bucket;
 				API_KEY?: string;
+				ADMIN_PASSWORD?: string;
+				ADMIN_SESSION_SECRET?: string;
 			};
 			context: { waitUntil(promise: Promise<unknown>): void };
 			caches: CacheStorage & { default: Cache };
+		}
+
+		interface Locals {
+			adminSession: {
+				authenticated: boolean;
+			};
 		}
 	}
 }

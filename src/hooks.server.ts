@@ -1,8 +1,26 @@
 import type { Handle } from '@sveltejs/kit';
+import {
+	adminApiUnauthorized,
+	adminLoginRedirect,
+	getAdminSession,
+	isAdminApiPath,
+	isProtectedAdminPath
+} from '$lib/server/auth';
 
 export const handle: Handle = async ({ event, resolve }) => {
+	event.locals.adminSession = await getAdminSession(event);
+
+	if (isProtectedAdminPath(event.url.pathname) && !event.locals.adminSession.authenticated) {
+		if (isAdminApiPath(event.url.pathname)) {
+			return adminApiUnauthorized();
+		}
+		return adminLoginRedirect(event);
+	}
+
 	const response = await resolve(event);
-	if (event.url.pathname.startsWith('/api/')) {
+	if (event.url.pathname.startsWith('/admin') || event.url.pathname === '/login' || event.url.pathname.startsWith('/api/admin/')) {
+		response.headers.set('cache-control', 'no-store');
+	} else if (event.url.pathname.startsWith('/api/')) {
 		response.headers.set('cache-control', 'public, max-age=60');
 	} else if (response.headers.get('content-type')?.includes('text/html')) {
 		response.headers.set('cache-control', 'public, max-age=300, s-maxage=3600');

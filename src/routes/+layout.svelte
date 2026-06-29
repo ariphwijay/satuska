@@ -20,19 +20,18 @@
 
 <div class="site-shell">
 	<header class="topbar">
-		<a class="brand" href="/" aria-label="AI Copyright Legal home">
-			<span class="brand-mark">ACL</span>
+		<a class="brand" href="/" aria-label="Satuska home">
+			<span class="brand-mark">S</span>
 			<span>
 				<strong>{site.name}</strong>
-				<small>AI law, cases, compliance</small>
+				<small>{site.niche} · guest-post-first publisher</small>
 			</span>
 		</a>
 		<nav aria-label="Main navigation">
 			<a href="/blog">Blog</a>
-			<a href="/cases">Cases</a>
-			<a href="/laws">Laws</a>
-			<a href="/learn">Learn</a>
-			<a href="/tools">Tools</a>
+			<a href="/write-for-us">Write for us</a>
+			<a href="/advertise">Advertise</a>
+			<a href="/contact">Contact</a>
 			<a class="nav-pill" href="/admin">Admin</a>
 		</nav>
 	</header>
@@ -44,10 +43,12 @@
 	<footer class="footer">
 		<div>
 			<strong>{site.name}</strong>
-			<p>News, practical guides, and case tracking for copyright law in the AI era.</p>
+			<p>{site.tagline}</p>
 		</div>
 		<div class="footer-links">
 			<a href="/about">About</a>
+			<a href="/write-for-us">Write for us</a>
+			<a href="/advertise">Advertise</a>
 			<a href="/privacy">Privacy</a>
 			<a href="/terms">Terms</a>
 		</div>
