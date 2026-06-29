@@ -41,7 +41,7 @@ export const site: SiteProfile = {
 	url: 'https://www.gushdesign.com',
 	description:
 		'Home improvement blog engine for practical guides, decor inspiration, and guest-post monetization.',
-	tagline: 'Practical home improvement ideas, room guides, and publish-ready editorial workflows.',
+	tagline: 'Practical home improvement ideas, room guides, and brand-safe editorial opportunities.',
 	niche: 'Home improvement',
 	primaryMonetization: 'guest_post',
 	optionalModules: {

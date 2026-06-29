@@ -16,9 +16,10 @@
 
 <section class="section">
 	<p class="eyebrow">Blog</p>
-	<h1>Editorial content that can grow into a real publisher workflow.</h1>
+	<h1>Home improvement articles for practical projects and smarter buying decisions.</h1>
 	<p class="lede">
-		Phase 1 uses seeded posts so the public reading surface, schema, listing behavior, and content direction are already visible.
+		Explore room guides, renovation ideas, decor inspiration, and commercial-intent resources for homeowners,
+		rental upgrades, and relevant home brands.
 	</p>
 
 	<div class="article-list">

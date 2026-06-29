@@ -25,7 +25,7 @@
 			<span class="brand-mark">S</span>
 			<span>
 				<strong>{site.name}</strong>
-				<small>{site.niche} · guest-post-first publisher</small>
+				<small>{site.niche} · practical guides and partner stories</small>
 			</span>
 		</a>
 		<nav aria-label="Main navigation">

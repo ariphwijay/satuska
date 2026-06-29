@@ -7,7 +7,7 @@
 
 <svelte:head>
 	<title>Contact — Satuska</title>
-	<meta name="description" content="Contact page scaffold for editorial, partner, and guest-post conversations." />
+	<meta name="description" content="Contact Satuska for editorial, partner, sponsored placement, and guest-post conversations." />
 </svelte:head>
 
 <section class="section">

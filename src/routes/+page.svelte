@@ -5,10 +5,10 @@
 </script>
 
 <svelte:head>
-	<title>Satuska — Home improvement blog scaffold for guest-post publishing</title>
+	<title>Satuska — Practical home improvement ideas and guest-post opportunities</title>
 	<meta
 		name="description"
-		content="Satuska is a home improvement publishing scaffold: blog-first, guest-post ready, with optional affiliate and local SEO modules later."
+		content="Satuska publishes practical home improvement guides, room ideas, renovation tips, and sponsored editorial opportunities for relevant brands."
 	/>
 	<link rel="canonical" href={`${site.url}/`} />
 </svelte:head>
@@ -16,11 +16,11 @@
 <section class="hero">
 	<div class="hero-grid">
 		<div>
-			<p class="eyebrow">Phase 1 scaffold</p>
-			<h1>Home improvement blog engine, ready for guest-post workflow.</h1>
+			<p class="eyebrow">Home improvement publisher</p>
+			<h1>Practical room guides, renovation ideas, and brand-safe editorial placements.</h1>
 			<p class="lede">
-				Satuska starts as a practical publisher: editorial posts, category structure, contributor pages, and an
-				operator-first admin shell. Local SEO and multisite stay optional.
+				Satuska helps readers make better home decisions with clear ideas for kitchens, living rooms,
+				decor, storage, outdoor spaces, and budget-conscious renovations.
 			</p>
 			<div class="actions">
 				<a class="button" href="/blog">Lihat artikel</a>
@@ -29,16 +29,16 @@
 		</div>
 
 		<aside class="panel dark">
-			<p class="eyebrow">Core mode</p>
-			<h2>Blog + guest post dulu.</h2>
+			<p class="eyebrow">Editorial focus</p>
+			<h2>Useful home content first.</h2>
 			<p>
-				Spec sekarang diterjemahkan ke fase 1 yang ringan: content hub, monetization surfaces, admin shell,
-				and initial D1 tables.
+				Every article is built around practical intent: what to improve, what to buy, what to avoid,
+				and how to make a room feel more considered without overcomplicating the project.
 			</p>
 			<div class="kpi-row">
-				<div class="kpi"><strong>{heroPosts.length}</strong><span>featured seed posts</span></div>
-				<div class="kpi"><strong>{categorySeeds.length}</strong><span>category seeds</span></div>
-				<div class="kpi"><strong>{submissionPackages.length}</strong><span>submission packages</span></div>
+				<div class="kpi"><strong>{heroPosts.length}</strong><span>featured articles</span></div>
+				<div class="kpi"><strong>{categorySeeds.length}</strong><span>core categories</span></div>
+				<div class="kpi"><strong>{submissionPackages.length}</strong><span>partner options</span></div>
 			</div>
 		</aside>
 	</div>
@@ -46,7 +46,7 @@
 
 <section class="section">
 	<p class="eyebrow">Featured content</p>
-	<h2>Editorial seeds for room guides, decor, and commercial-intent content.</h2>
+	<h2>Room guides, decor ideas, renovation tips, and commercial-intent resources.</h2>
 	<div class="card-grid">
 		{#each heroPosts as post}
 			<a class="article-card" href={`/blog/${post.slug}`}>
@@ -64,39 +64,39 @@
 
 <section class="section two-col">
 	<div>
-		<p class="eyebrow">Core clusters</p>
-		<h2>Keep the first build intentionally narrow.</h2>
+		<p class="eyebrow">Content clusters</p>
+		<h2>A focused home improvement library for readers and partners.</h2>
 		<p>
-			The current scaffold supports a content publisher workflow first. Optional modules like local SEO, affiliate,
-			and multi-site controls can layer on top later.
+			Satuska keeps the editorial scope tight around practical household upgrades, design choices,
+			and buying decisions where readers need concise, trustworthy guidance.
 		</p>
 	</div>
 	<div class="stack">
 		<div class="row"><span>Room guides & renovation tips</span><span>Core</span></div>
-		<div class="row"><span>Guest-post intake + advertise pages</span><span>Core</span></div>
-		<div class="row"><span>Affiliate comparison surfaces</span><span>Optional</span></div>
-		<div class="row"><span>Local SEO location/service pages</span><span>Optional</span></div>
-		<div class="row"><span>Project setup for future multi-site mode</span><span>Future-ready</span></div>
+		<div class="row"><span>Decor, storage & styling ideas</span><span>Core</span></div>
+		<div class="row"><span>Buying guides and product comparisons</span><span>Commercial</span></div>
+		<div class="row"><span>Sponsored editorial placements</span><span>Partner</span></div>
+		<div class="row"><span>Contributor and guest-post intake</span><span>Open</span></div>
 	</div>
 </section>
 
 <section class="section">
-	<p class="eyebrow">What phase 1 includes</p>
+	<p class="eyebrow">For readers and partners</p>
 	<div class="cluster-grid">
 		<div class="info-strip">
-			<h3>Public site</h3>
+			<h3>Public content</h3>
 			<ul class="list-clean">
-				<li>Homepage scaffold</li>
-				<li>Blog list + article detail</li>
-				<li>Write for us / advertise / contact pages</li>
+				<li>Home improvement articles</li>
+				<li>Room-by-room practical guidance</li>
+				<li>Renovation, decor, and buying ideas</li>
 			</ul>
 		</div>
 		<div class="info-strip">
-			<h3>Operator side</h3>
+			<h3>Partner opportunities</h3>
 			<ul class="list-clean">
-				<li>Admin overview shell</li>
-				<li>Project setup placeholders</li>
-				<li>Content / monetization / workflow sections</li>
+				<li>Guest-post submissions</li>
+				<li>Sponsored article discussions</li>
+				<li>Relevant brand mentions and placements</li>
 			</ul>
 		</div>
 	</div>
