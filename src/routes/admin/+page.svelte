@@ -144,6 +144,24 @@
 						{/each}
 					</div>
 				</div>
+
+				<div class="admin-card" id="operational-risk-board">
+					<h3>Operational risk board</h3>
+					<div class="stack" style="gap:.75rem;">
+						{#each data.operationalRiskBoard as item}
+							<div class={`card severity-${item.severity}`}>
+								<div class="meta" style="justify-content:space-between; align-items:center; gap:.75rem; flex-wrap:wrap;">
+									<strong>{item.label}</strong>
+									<span class="badge">{item.score.toFixed(0)} · {item.severity}</span>
+								</div>
+								<p style="margin:.55rem 0 0;">{item.detail}</p>
+								<div class="actions" style="justify-content:flex-start; margin-top:.75rem;">
+									<a class="button secondary" href={item.ctaHref}>{item.ctaLabel}</a>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
 			</div>
 
 			<div class="admin-card">

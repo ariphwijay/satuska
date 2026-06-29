@@ -188,6 +188,15 @@ type AdminWarning = {
 	ctaHref: string;
 };
 
+type RiskBoardItem = {
+	label: string;
+	score: number;
+	severity: 'critical' | 'warn' | 'info';
+	detail: string;
+	ctaLabel: string;
+	ctaHref: string;
+};
+
 function buildAdminWarnings(
 	distributionSummary: ReturnType<typeof buildDistributionSummary>,
 	auditAnalytics: Awaited<ReturnType<typeof getAdminAuditAnalyticsSummary>>
@@ -327,6 +336,57 @@ function buildAdminWarnings(
 	return warnings.sort((a, b) => b.score - a.score).slice(0, 4);
 }
 
+function scoreToSeverity(score: number): 'critical' | 'warn' | 'info' {
+	if (score >= 85) return 'critical';
+	if (score >= 55) return 'warn';
+	return 'info';
+}
+
+function buildOperationalRiskBoard(
+	distributionSummary: ReturnType<typeof buildDistributionSummary>,
+	auditAnalytics: Awaited<ReturnType<typeof getAdminAuditAnalyticsSummary>>
+) {
+	const items: RiskBoardItem[] = [
+		{
+			label: 'Draft pipeline',
+			score: Math.min(100, distributionSummary.statusCounts.draft * 8 + (distributionSummary.aging.oldestDraftHours ?? 0) / 2),
+			severity: 'info',
+			detail: `${distributionSummary.statusCounts.draft} draft · oldest ${distributionSummary.aging.oldestDraftLabel}`,
+			ctaLabel: 'Buka draft',
+			ctaHref: '#edit-posts'
+		},
+		{
+			label: 'SEO review pipeline',
+			score: Math.min(100, distributionSummary.statusCounts.seoReview * 14 + (distributionSummary.aging.oldestSeoReviewHours ?? 0) / 1.6),
+			severity: 'info',
+			detail: `${distributionSummary.statusCounts.seoReview} review · oldest ${distributionSummary.aging.oldestSeoReviewLabel}`,
+			ctaLabel: 'Review post',
+			ctaHref: '#edit-posts'
+		},
+		{
+			label: 'Submission pipeline',
+			score: Math.min(100, distributionSummary.openSubmissionCount * 12 + (distributionSummary.aging.oldestOpenSubmissionHours ?? 0) / 1.8),
+			severity: 'info',
+			detail: `${distributionSummary.openSubmissionCount} open · oldest ${distributionSummary.aging.oldestOpenSubmissionLabel}`,
+			ctaLabel: 'Buka submission',
+			ctaHref: '#submission-review'
+		},
+		{
+			label: 'Admin activity pressure',
+			score: Math.min(100, auditAnalytics.last24HoursCount * 4 + auditAnalytics.last7DaysCount),
+			severity: 'info',
+			detail: `${auditAnalytics.last24HoursCount} mutation / 24j · status ${auditAnalytics.recentWindowLabel}`,
+			ctaLabel: 'Buka audit',
+			ctaHref: '#audit-trail'
+		}
+	].map((item) => ({
+		...item,
+		severity: scoreToSeverity(item.score)
+	}));
+
+	return items.sort((a, b) => b.score - a.score);
+}
+
 export const load: ServerLoad = async (event) => {
 	const db = getDb(event);
 	const auditSummaryPromise = getAdminMutationLogSummary(
@@ -352,12 +412,14 @@ export const load: ServerLoad = async (event) => {
 	const distributionSummary = buildDistributionSummary(posts, submissions);
 	const adminWarnings = buildAdminWarnings(distributionSummary, auditAnalytics);
 	const topAdminWarning = adminWarnings[0] ?? null;
+	const operationalRiskBoard = buildOperationalRiskBoard(distributionSummary, auditAnalytics);
 	return {
 		posts,
 		submissions,
 		distributionSummary,
 		adminWarnings,
 		topAdminWarning,
+		operationalRiskBoard,
 		recentMutations: auditSummary.recentMutations,
 		auditFilters: auditSummary.filters,
 		availableAuditActions: auditSummary.availableActions,
