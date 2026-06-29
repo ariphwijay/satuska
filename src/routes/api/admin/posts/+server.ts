@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
+import { getOperatorErrorMessage } from '$lib/server/errors';
 import { createPost, listPosts } from '$lib/server/repositories/posts';
 import { validatePostPayload } from '$lib/server/validation';
 
@@ -18,7 +19,10 @@ export const POST: RequestHandler = async (event) => {
 	const parsed = validatePostPayload(body, 'create');
 	if (!parsed.ok) return json({ ok: false, error: parsed.error }, { status: 400 });
 
-	const result = await createPost(parsed.data, db);
-
-	return json({ ok: true, result }, { status: 201 });
+	try {
+		const result = await createPost(parsed.data, db);
+		return json({ ok: true, result }, { status: 201 });
+	} catch (error) {
+		return json({ ok: false, error: getOperatorErrorMessage(error, 'Post gagal dibuat.') }, { status: 400 });
+	}
 };

@@ -1,6 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
+import { getOperatorErrorMessage } from '$lib/server/errors';
 import { enforceRateLimit } from '$lib/server/rate-limit';
 import { createSubmission } from '$lib/server/repositories/submissions';
 import { validateSubmission } from '$lib/server/validation';
@@ -26,7 +27,11 @@ export const actions: Actions = {
 			return fail(400, { error: parsed.error });
 		}
 
-		await createSubmission(parsed.data, db);
+		try {
+			await createSubmission(parsed.data, db);
+		} catch (error) {
+			return fail(400, { error: getOperatorErrorMessage(error, 'Pesan gagal dikirim. Coba lagi.') });
+		}
 
 		return { success: 'Pesanmu sudah masuk ke inbox admin.' };
 	}

@@ -1,4 +1,5 @@
 import type { D1Database } from '$lib/server/db';
+import { DuplicateSubmissionError } from '$lib/server/errors';
 
 export type SubmissionInput = {
 	name: string;
@@ -41,6 +42,30 @@ export async function listSubmissions(db: D1Database | null = null): Promise<Sub
 	return result.results ?? [];
 }
 
+async function ensureSubmissionIsNotDuplicate(payload: {
+	email: string;
+	topic: string | null;
+	message: string;
+	submissionType: string;
+	targetUrl: string | null;
+}, db: D1Database) {
+	const row = await db
+		.prepare(`
+			SELECT id
+			FROM submissions
+			WHERE lower(email) = lower(?1)
+			  AND submission_type = ?2
+			  AND ifnull(topic, '') = ifnull(?3, '')
+			  AND ifnull(target_url, '') = ifnull(?4, '')
+			  AND message = ?5
+			  AND created_at >= datetime('now', '-24 hours')
+			LIMIT 1
+		`)
+		.bind(payload.email, payload.submissionType, payload.topic, payload.targetUrl, payload.message)
+		.first<{ id: number }>();
+	if (row?.id) throw new DuplicateSubmissionError();
+}
+
 export async function createSubmission(input: SubmissionInput, db: D1Database | null = null) {
 	const payload = {
 		name: input.name.trim(),
@@ -62,6 +87,8 @@ export async function createSubmission(input: SubmissionInput, db: D1Database | 
 			...payload
 		};
 	}
+
+	await ensureSubmissionIsNotDuplicate(payload, db);
 
 	const result = await db
 		.prepare(`

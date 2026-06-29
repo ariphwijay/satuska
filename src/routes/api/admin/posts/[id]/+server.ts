@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
+import { getOperatorErrorMessage } from '$lib/server/errors';
 import { deletePost, updatePost } from '$lib/server/repositories/posts';
 import { validatePositiveId, validatePostPayload } from '$lib/server/validation';
 
@@ -13,9 +14,12 @@ export const PUT: RequestHandler = async (event) => {
 	const parsed = validatePostPayload(body, 'update', idResult.data.id);
 	if (!parsed.ok) return json({ ok: false, error: parsed.error }, { status: 400 });
 
-	const result = await updatePost(idResult.data.id, parsed.data, db);
-
-	return json({ ok: true, result });
+	try {
+		const result = await updatePost(idResult.data.id, parsed.data, db);
+		return json({ ok: true, result });
+	} catch (error) {
+		return json({ ok: false, error: getOperatorErrorMessage(error, 'Post gagal diupdate.') }, { status: 400 });
+	}
 };
 
 export const DELETE: RequestHandler = async (event) => {

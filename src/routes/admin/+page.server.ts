@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import type { Actions, ServerLoad } from '@sveltejs/kit';
 import { categorySeeds } from '$lib/content';
 import { getDb } from '$lib/server/db';
+import { getOperatorErrorMessage } from '$lib/server/errors';
 import { createPost, deletePost, listPosts, updatePost } from '$lib/server/repositories/posts';
 import { listSubmissions, updateSubmissionStatus } from '$lib/server/repositories/submissions';
 import { validatePostForm, validateSubmissionStatus } from '$lib/server/validation';
@@ -30,7 +31,11 @@ export const actions: Actions = {
 		const parsed = validatePostForm(formData, 'create');
 		if (!parsed.ok) return fail(400, { createError: parsed.error });
 
-		await createPost(parsed.data, db);
+		try {
+			await createPost(parsed.data, db);
+		} catch (error) {
+			return fail(400, { createError: getOperatorErrorMessage(error, 'Post gagal dibuat.') });
+		}
 
 		return { createSuccess: 'Post berhasil dibuat.' };
 	},
@@ -43,7 +48,11 @@ export const actions: Actions = {
 		const parsed = validatePostForm(formData, 'update');
 		if (!parsed.ok) return fail(400, { updateError: parsed.error });
 
-		await updatePost(parsed.data.id!, parsed.data, db);
+		try {
+			await updatePost(parsed.data.id!, parsed.data, db);
+		} catch (error) {
+			return fail(400, { updateError: getOperatorErrorMessage(error, 'Post gagal diupdate.') });
+		}
 
 		return { updateSuccess: `Post #${parsed.data.id} berhasil diupdate.` };
 	},
