@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { publishedPosts, site } from '$lib/content';
+	import { site } from '$lib/content';
 
-	const posts = publishedPosts();
+	let { data } = $props();
+	let posts = $derived(data.posts);
 </script>
 
 <svelte:head>
