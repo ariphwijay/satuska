@@ -1,10 +1,5 @@
 node_modules/
 .svelte-kit/
-.wrangler/
-.DS_Store
-dist/
-.env
-.env.*
-!.env.example
 .dev.vars
-.cloudflare/
+.DS_Store
+backups/
