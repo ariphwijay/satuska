@@ -330,11 +330,13 @@ export const load: ServerLoad = async (event) => {
 	]);
 	const distributionSummary = buildDistributionSummary(posts, submissions);
 	const adminWarnings = buildAdminWarnings(distributionSummary, auditAnalytics);
+	const topAdminWarning = adminWarnings[0] ?? null;
 	return {
 		posts,
 		submissions,
 		distributionSummary,
 		adminWarnings,
+		topAdminWarning,
 		recentMutations: auditSummary.recentMutations,
 		auditFilters: auditSummary.filters,
 		availableAuditActions: auditSummary.availableActions,

@@ -54,6 +54,20 @@
 	{#if form?.submissionSuccess}<div class="info-strip"><strong>OK:</strong> {form.submissionSuccess}</div>{/if}
 	{#if form?.housekeepingSuccess}<div class="info-strip"><strong>OK:</strong> {form.housekeepingSuccess}</div>{/if}
 
+	{#if data.topAdminWarning}
+		<div class={`top-warning-ribbon severity-strip severity-${data.topAdminWarning.severity}`}>
+			<div>
+				<p class="eyebrow" style="margin:0 0 .35rem;">Priority warning</p>
+				<h2 style="margin:0;">{data.topAdminWarning.title}</h2>
+				<p style="margin:.45rem 0 0;">{data.topAdminWarning.detail}</p>
+			</div>
+			<div class="actions" style="margin:0; justify-content:flex-start;">
+				<span class="badge">{data.topAdminWarning.severity.toUpperCase()} · {data.topAdminWarning.score}</span>
+				<a class="button secondary" href={data.topAdminWarning.ctaHref}>{data.topAdminWarning.ctaLabel}</a>
+			</div>
+		</div>
+	{/if}
+
 	<div class="admin-shell-grid">
 		<div class="stack">
 			<div class="admin-card" id="distribution-snapshot">
@@ -380,6 +394,20 @@
 </section>
 
 <style>
+	.top-warning-ribbon {
+		position: sticky;
+		top: 1rem;
+		z-index: 4;
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		align-items: flex-start;
+		flex-wrap: wrap;
+		padding: 1rem 1.1rem;
+		border-radius: 1rem;
+		margin-bottom: 1rem;
+	}
+
 	:global(.severity-strip) {
 		border-left: 4px solid transparent;
 	}
