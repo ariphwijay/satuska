@@ -5,5 +5,9 @@ import { listPublishedPosts } from '$lib/server/repositories/posts';
 
 export const GET: RequestHandler = async (event) => {
 	const posts = await listPublishedPosts(getDb(event));
-	return json(posts);
+	return json(posts, {
+		headers: {
+			'cache-control': 'no-store'
+		}
+	});
 };

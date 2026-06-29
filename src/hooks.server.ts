@@ -18,7 +18,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	const response = await resolve(event);
-	if (event.url.pathname.startsWith('/admin') || event.url.pathname === '/login' || event.url.pathname.startsWith('/api/admin/')) {
+	if (
+		event.url.pathname.startsWith('/admin') ||
+		event.url.pathname === '/login' ||
+		event.url.pathname.startsWith('/api/admin/') ||
+		event.url.pathname.startsWith('/api/articles/')
+	) {
 		response.headers.set('cache-control', 'no-store');
 	} else if (event.url.pathname.startsWith('/api/')) {
 		response.headers.set('cache-control', 'public, max-age=60');
