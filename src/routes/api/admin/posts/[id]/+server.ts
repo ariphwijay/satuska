@@ -1,13 +1,30 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
+import { requireAdminApiSession } from '$lib/server/admin-api';
 import { writeAdminMutationLog } from '$lib/server/audit';
 import { getDb } from '$lib/server/db';
 import { getOperatorErrorMessage } from '$lib/server/errors';
 import { guardAgainstDuplicateRequest } from '$lib/server/idempotency';
-import { deletePost, updatePost } from '$lib/server/repositories/posts';
+import { deletePost, getPostById, updatePost } from '$lib/server/repositories/posts';
 import { validatePositiveId, validatePostPayload } from '$lib/server/validation';
 
+export const GET: RequestHandler = async (event) => {
+	const unauthorized = requireAdminApiSession(event);
+	if (unauthorized) return unauthorized;
+
+	const db = getDb(event);
+	if (!db) return json({ ok: false, error: 'DB belum tersedia di environment ini.' }, { status: 503 });
+	const idResult = validatePositiveId(event.params.id, 'ID post');
+	if (!idResult.ok) return json({ ok: false, error: idResult.error }, { status: 400 });
+	const post = await getPostById(idResult.data.id, db);
+	if (!post) return json({ ok: false, error: 'Post tidak ditemukan.' }, { status: 404 });
+	return json({ ok: true, item: post });
+};
+
 export const PUT: RequestHandler = async (event) => {
+	const unauthorized = requireAdminApiSession(event);
+	if (unauthorized) return unauthorized;
+
 	const db = getDb(event);
 	if (!db) return json({ ok: false, error: 'DB belum tersedia di environment ini.' }, { status: 503 });
 	const idResult = validatePositiveId(event.params.id, 'ID post');
@@ -27,13 +44,16 @@ export const PUT: RequestHandler = async (event) => {
 			summary: `API update post #${idResult.data.id}`,
 			payload: { slug: parsed.data.slug, status: parsed.data.status }
 		});
-		return json({ ok: true, result });
+		return json({ ok: true, result, message: `Post #${idResult.data.id} berhasil diupdate.` });
 	} catch (error) {
 		return json({ ok: false, error: getOperatorErrorMessage(error, 'Post gagal diupdate.') }, { status: 400 });
 	}
 };
 
 export const DELETE: RequestHandler = async (event) => {
+	const unauthorized = requireAdminApiSession(event);
+	if (unauthorized) return unauthorized;
+
 	const db = getDb(event);
 	if (!db) return json({ ok: false, error: 'DB belum tersedia di environment ini.' }, { status: 503 });
 	const idResult = validatePositiveId(event.params.id, 'ID post');
@@ -48,5 +68,5 @@ export const DELETE: RequestHandler = async (event) => {
 		summary: `API delete post #${idResult.data.id}`,
 		payload: { id: idResult.data.id }
 	});
-	return json({ ok: true, result });
+	return json({ ok: true, result, message: `Post #${idResult.data.id} dihapus.` });
 };

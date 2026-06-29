@@ -109,6 +109,23 @@ export async function listPublishedPosts(db: D1Database | null = null) {
 	return (await listPosts(db)).filter((post) => post.status === 'published');
 }
 
+export async function getPostById(id: number, db: D1Database | null = null) {
+	if (!db) return posts.find((post) => post.id === id) ?? null;
+
+	const row = await db
+		.prepare(`
+			SELECT id, title, slug, excerpt, content, category, status, featured_image, seo_title,
+			       seo_description, tags, read_time, published_at, updated_at, intent, monetization, featured
+			FROM posts
+			WHERE id = ?1
+			LIMIT 1
+		`)
+		.bind(id)
+		.first<PostRow>();
+
+	return row ? mapRow(row) : null;
+}
+
 export async function getPostBySlug(slug: string, db: D1Database | null = null) {
 	if (!db) return postBySlug(slug) ?? null;
 

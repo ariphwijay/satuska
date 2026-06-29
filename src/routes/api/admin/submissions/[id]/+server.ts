@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
+import { requireAdminApiSession } from '$lib/server/admin-api';
 import { writeAdminMutationLog } from '$lib/server/audit';
 import { getDb } from '$lib/server/db';
 import { guardAgainstDuplicateRequest } from '$lib/server/idempotency';
@@ -7,6 +8,9 @@ import { updateSubmissionStatus } from '$lib/server/repositories/submissions';
 import { validateSubmissionStatusPayload } from '$lib/server/validation';
 
 export const PUT: RequestHandler = async (event) => {
+	const unauthorized = requireAdminApiSession(event);
+	if (unauthorized) return unauthorized;
+
 	const db = getDb(event);
 	if (!db) return json({ ok: false, error: 'DB belum tersedia di environment ini.' }, { status: 503 });
 	const body = await event.request.json().catch(() => null);
@@ -22,5 +26,5 @@ export const PUT: RequestHandler = async (event) => {
 		summary: `API update submission #${parsed.data.id} ke ${parsed.data.status}`,
 		payload: parsed.data
 	});
-	return json({ ok: true, result });
+	return json({ ok: true, result, message: `Submission #${parsed.data.id} diubah ke ${parsed.data.status}.` });
 };

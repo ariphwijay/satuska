@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
+import { requireAdminApiSession } from '$lib/server/admin-api';
 import { writeAdminMutationLog } from '$lib/server/audit';
 import { getDb } from '$lib/server/db';
 import { getOperatorErrorMessage } from '$lib/server/errors';
@@ -8,13 +9,28 @@ import { createPost, listPosts } from '$lib/server/repositories/posts';
 import { validatePostPayload } from '$lib/server/validation';
 
 export const GET: RequestHandler = async (event) => {
+	const unauthorized = requireAdminApiSession(event);
+	if (unauthorized) return unauthorized;
+
 	const db = getDb(event);
 	if (!db) return json({ ok: false, error: 'DB belum tersedia di environment ini.' }, { status: 503 });
 	const posts = await listPosts(db);
-	return json(posts);
+	return json({
+		ok: true,
+		items: posts,
+		total: posts.length,
+		workflow: {
+			draft: posts.filter((post) => post.status === 'draft').length,
+			seoReview: posts.filter((post) => post.status === 'seo_review').length,
+			published: posts.filter((post) => post.status === 'published').length
+		}
+	});
 };
 
 export const POST: RequestHandler = async (event) => {
+	const unauthorized = requireAdminApiSession(event);
+	if (unauthorized) return unauthorized;
+
 	const db = getDb(event);
 	if (!db) return json({ ok: false, error: 'DB belum tersedia di environment ini.' }, { status: 503 });
 	const body = await event.request.json().catch(() => null);
@@ -32,7 +48,7 @@ export const POST: RequestHandler = async (event) => {
 			summary: `API create post ${parsed.data.slug}`,
 			payload: { slug: parsed.data.slug, status: parsed.data.status }
 		});
-		return json({ ok: true, result }, { status: 201 });
+		return json({ ok: true, result, message: 'Post berhasil dibuat.' }, { status: 201 });
 	} catch (error) {
 		return json({ ok: false, error: getOperatorErrorMessage(error, 'Post gagal dibuat.') }, { status: 400 });
 	}
