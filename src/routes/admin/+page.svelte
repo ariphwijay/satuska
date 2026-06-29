@@ -58,6 +58,13 @@
 		<div class="stack">
 			<div class="admin-card">
 				<h3>Distribution / handoff snapshot</h3>
+				<div class="stack" style="gap:.65rem; margin-bottom:1rem;">
+					{#each data.adminWarnings as warning}
+						<div class={`info-strip ${warning.level === 'warn' ? 'warning-strip' : ''}`}>
+							<strong>{warning.title}:</strong> {warning.detail}
+						</div>
+					{/each}
+				</div>
 				<div class="form-grid" style="margin-bottom:1rem;">
 					<div class="card">
 						<p style="margin:0 0 .35rem;"><strong>Publish queue</strong></p>

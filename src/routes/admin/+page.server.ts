@@ -45,6 +45,12 @@ function formatCompactDate(value: string | null | undefined) {
 	return new Date(timestamp).toISOString().slice(0, 16).replace('T', ' ');
 }
 
+function hoursSince(value: string | null | undefined) {
+	const timestamp = normalizeIsoish(value);
+	if (!timestamp) return null;
+	return Math.floor((Date.now() - timestamp) / (1000 * 60 * 60));
+}
+
 function buildDistributionSummary(posts: Awaited<ReturnType<typeof listPosts>>, submissions: Awaited<ReturnType<typeof listSubmissions>>) {
 	const statusCounts = {
 		draft: posts.filter((post) => post.status === 'draft').length,
@@ -118,6 +124,64 @@ function buildDistributionSummary(posts: Awaited<ReturnType<typeof listPosts>>, 
 	};
 }
 
+function buildAdminWarnings(
+	distributionSummary: ReturnType<typeof buildDistributionSummary>,
+	auditAnalytics: Awaited<ReturnType<typeof getAdminAuditAnalyticsSummary>>
+) {
+	const warnings: Array<{ level: 'warn' | 'info'; title: string; detail: string }> = [];
+
+	if (distributionSummary.statusCounts.seoReview >= 3) {
+		warnings.push({
+			level: 'warn',
+			title: 'SEO review menumpuk',
+			detail: `${distributionSummary.statusCounts.seoReview} post masih di seo_review.`
+		});
+	}
+
+	if (distributionSummary.openSubmissionCount >= 4) {
+		warnings.push({
+			level: 'warn',
+			title: 'Submission open tinggi',
+			detail: `${distributionSummary.openSubmissionCount} submission masih butuh tindak lanjut.`
+		});
+	}
+
+	const publishGapHours = hoursSince(distributionSummary.lastPublishedPost?.publishedAt);
+	if (distributionSummary.statusCounts.published > 0 && publishGapHours !== null && publishGapHours >= 72) {
+		warnings.push({
+			level: 'info',
+			title: 'Publish melambat',
+			detail: `Post terakhir live sekitar ${publishGapHours} jam lalu.`
+		});
+	}
+
+	if (distributionSummary.statusCounts.draft >= 5 && distributionSummary.statusCounts.published === 0) {
+		warnings.push({
+			level: 'warn',
+			title: 'Queue draft belum tembus publish',
+			detail: `${distributionSummary.statusCounts.draft} draft aktif tapi belum ada post published.`
+		});
+	}
+
+	if (auditAnalytics.recentWindowLabel === 'busy' && auditAnalytics.last24HoursCount >= 8) {
+		warnings.push({
+			level: 'info',
+			title: 'Mutation admin sedang padat',
+			detail: `${auditAnalytics.last24HoursCount} mutation tercatat dalam 24 jam terakhir.`
+		});
+	}
+
+	if (warnings.length === 0) {
+		warnings.push({
+			level: 'info',
+			title: 'Panel sehat',
+			detail: 'Belum ada anomali utama yang perlu perhatian cepat.'
+		});
+	}
+
+	return warnings.slice(0, 4);
+}
+
 export const load: ServerLoad = async (event) => {
 	const db = getDb(event);
 	const auditSummaryPromise = getAdminMutationLogSummary(
@@ -141,10 +205,12 @@ export const load: ServerLoad = async (event) => {
 		getIdempotencyHousekeepingSummary(db)
 	]);
 	const distributionSummary = buildDistributionSummary(posts, submissions);
+	const adminWarnings = buildAdminWarnings(distributionSummary, auditAnalytics);
 	return {
 		posts,
 		submissions,
 		distributionSummary,
+		adminWarnings,
 		recentMutations: auditSummary.recentMutations,
 		auditFilters: auditSummary.filters,
 		availableAuditActions: auditSummary.availableActions,
