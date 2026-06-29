@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, ServerLoad } from '@sveltejs/kit';
 import { categorySeeds } from '$lib/content';
-import { listRecentAdminMutationLogs, writeAdminMutationLog } from '$lib/server/audit';
+import { getAdminMutationLogSummary, writeAdminMutationLog } from '$lib/server/audit';
 import { getDb } from '$lib/server/db';
 import { getOperatorErrorMessage } from '$lib/server/errors';
 import { guardAgainstDuplicateRequest } from '$lib/server/idempotency';
@@ -13,17 +13,35 @@ function stringValue(formData: FormData, key: string) {
 	return String(formData.get(key) ?? '').trim();
 }
 
+function positiveNumber(value: string | null) {
+	const parsed = Number(value ?? '');
+	return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 export const load: ServerLoad = async (event) => {
 	const db = getDb(event);
-	const [posts, submissions, recentMutations] = await Promise.all([
+	const auditSummaryPromise = getAdminMutationLogSummary(
+		db,
+		{
+			action: event.url.searchParams.get('auditAction'),
+			entityType: event.url.searchParams.get('auditEntity'),
+			selectedId: positiveNumber(event.url.searchParams.get('auditLog'))
+		},
+		16
+	);
+	const [posts, submissions, auditSummary] = await Promise.all([
 		listPosts(db),
 		listSubmissions(db),
-		listRecentAdminMutationLogs(db)
+		auditSummaryPromise
 	]);
 	return {
 		posts,
 		submissions,
-		recentMutations,
+		recentMutations: auditSummary.recentMutations,
+		auditFilters: auditSummary.filters,
+		availableAuditActions: auditSummary.availableActions,
+		availableAuditEntityTypes: auditSummary.availableEntityTypes,
+		selectedAuditMutation: auditSummary.selectedMutation,
 		categories: categorySeeds,
 		hasDb: Boolean(db)
 	};

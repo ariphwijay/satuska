@@ -123,6 +123,48 @@
 
 			<div class="admin-card">
 				<h3>Audit trail mutation terbaru</h3>
+				<form method="GET" class="stack" style="margin-bottom:1rem; gap:.75rem;">
+					<div class="form-grid">
+						<label>Filter action
+							<select name="auditAction">
+								<option value="">Semua action</option>
+								{#each data.availableAuditActions as action}
+									<option value={action} selected={data.auditFilters.action === action}>{action}</option>
+								{/each}
+							</select>
+						</label>
+						<label>Filter entity
+							<select name="auditEntity">
+								<option value="">Semua entity</option>
+								{#each data.availableAuditEntityTypes as entityType}
+									<option value={entityType} selected={data.auditFilters.entityType === entityType}>{entityType}</option>
+								{/each}
+							</select>
+						</label>
+					</div>
+					<div class="actions" style="justify-content:flex-start;">
+						<button class="button secondary" type="submit">Apply filter</button>
+						<a class="button secondary" href="/admin">Reset</a>
+					</div>
+				</form>
+
+				{#if data.selectedAuditMutation}
+					<div class="card" style="margin-bottom:1rem; border-style:dashed;">
+						<div class="meta">
+							<span class="badge">Selected #{data.selectedAuditMutation.id}</span>
+							<span>{data.selectedAuditMutation.action}</span>
+							<span>{data.selectedAuditMutation.entity_type}{data.selectedAuditMutation.entity_id ? ` #${data.selectedAuditMutation.entity_id}` : ''}</span>
+						</div>
+						<p><strong>{data.selectedAuditMutation.summary}</strong></p>
+						<p style="margin:.35rem 0 0;">{data.selectedAuditMutation.created_at} · {data.selectedAuditMutation.ip_address ?? 'unknown IP'} · {data.selectedAuditMutation.user_agent ?? 'unknown agent'}</p>
+						{#if data.selectedAuditMutation.payload_json}
+							<label style="margin-top:1rem; display:block;">Payload detail
+								<textarea rows="6" readonly>{data.selectedAuditMutation.payload_json}</textarea>
+							</label>
+						{/if}
+					</div>
+				{/if}
+
 				{#if data.recentMutations.length === 0}
 					<p>Belum ada log mutation admin.</p>
 				{:else}
@@ -136,6 +178,9 @@
 								</div>
 								<p><strong>{item.summary}</strong></p>
 								<p style="margin:.35rem 0 0;">{item.created_at} · {item.ip_address ?? 'unknown IP'}</p>
+								<div class="actions" style="justify-content:flex-start; margin-top:.85rem;">
+									<a class="button secondary" href={`?auditAction=${data.auditFilters.action || ''}&auditEntity=${data.auditFilters.entityType || ''}&auditLog=${item.id}`}>Lihat detail</a>
+								</div>
 							</div>
 						{/each}
 					</div>
