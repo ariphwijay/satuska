@@ -2,6 +2,7 @@ import { fail } from '@sveltejs/kit';
 import type { Actions } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import { getOperatorErrorMessage } from '$lib/server/errors';
+import { guardAgainstDuplicateRequest } from '$lib/server/idempotency';
 import { enforceRateLimit } from '$lib/server/rate-limit';
 import { createSubmission } from '$lib/server/repositories/submissions';
 import { validateSubmission } from '$lib/server/validation';
@@ -25,6 +26,10 @@ export const actions: Actions = {
 		const parsed = validateSubmission(formData, 'contact');
 		if (!parsed.ok) {
 			return fail(400, { error: parsed.error });
+		}
+		const duplicate = await guardAgainstDuplicateRequest(event, db, 'contact_submission_form', parsed.data, 30);
+		if (!duplicate.ok) {
+			return fail(409, { error: duplicate.message });
 		}
 
 		try {

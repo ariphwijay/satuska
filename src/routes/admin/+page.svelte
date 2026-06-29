@@ -122,6 +122,27 @@
 			</div>
 
 			<div class="admin-card">
+				<h3>Audit trail mutation terbaru</h3>
+				{#if data.recentMutations.length === 0}
+					<p>Belum ada log mutation admin.</p>
+				{:else}
+					<div class="stack">
+						{#each data.recentMutations as item}
+							<div class="card">
+								<div class="meta">
+									<span class="badge">#{item.id}</span>
+									<span>{item.action}</span>
+									<span>{item.entity_type}{item.entity_id ? ` #${item.entity_id}` : ''}</span>
+								</div>
+								<p><strong>{item.summary}</strong></p>
+								<p style="margin:.35rem 0 0;">{item.created_at} · {item.ip_address ?? 'unknown IP'}</p>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
+
+			<div class="admin-card">
 				<h3>Submission review</h3>
 				{#if data.submissions.length === 0}
 					<p>Belum ada submission di DB.</p>

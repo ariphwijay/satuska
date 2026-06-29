@@ -1,8 +1,10 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, ServerLoad } from '@sveltejs/kit';
 import { categorySeeds } from '$lib/content';
+import { listRecentAdminMutationLogs, writeAdminMutationLog } from '$lib/server/audit';
 import { getDb } from '$lib/server/db';
 import { getOperatorErrorMessage } from '$lib/server/errors';
+import { guardAgainstDuplicateRequest } from '$lib/server/idempotency';
 import { createPost, deletePost, listPosts, updatePost } from '$lib/server/repositories/posts';
 import { listSubmissions, updateSubmissionStatus } from '$lib/server/repositories/submissions';
 import { validatePostForm, validateSubmissionStatus } from '$lib/server/validation';
@@ -13,10 +15,15 @@ function stringValue(formData: FormData, key: string) {
 
 export const load: ServerLoad = async (event) => {
 	const db = getDb(event);
-	const [posts, submissions] = await Promise.all([listPosts(db), listSubmissions(db)]);
+	const [posts, submissions, recentMutations] = await Promise.all([
+		listPosts(db),
+		listSubmissions(db),
+		listRecentAdminMutationLogs(db)
+	]);
 	return {
 		posts,
 		submissions,
+		recentMutations,
 		categories: categorySeeds,
 		hasDb: Boolean(db)
 	};
@@ -30,9 +37,18 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const parsed = validatePostForm(formData, 'create');
 		if (!parsed.ok) return fail(400, { createError: parsed.error });
+		const duplicate = await guardAgainstDuplicateRequest(event, db, 'admin_create_post', parsed.data, 20);
+		if (!duplicate.ok) return fail(409, { createError: duplicate.message });
 
 		try {
-			await createPost(parsed.data, db);
+			const result = await createPost(parsed.data, db);
+			await writeAdminMutationLog(event, db, {
+				action: 'create_post',
+				entityType: 'post',
+				entityId: result.id,
+				summary: `Create post ${parsed.data.slug}`,
+				payload: { slug: parsed.data.slug, status: parsed.data.status, category: parsed.data.category }
+			});
 		} catch (error) {
 			return fail(400, { createError: getOperatorErrorMessage(error, 'Post gagal dibuat.') });
 		}
@@ -47,9 +63,18 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const parsed = validatePostForm(formData, 'update');
 		if (!parsed.ok) return fail(400, { updateError: parsed.error });
+		const duplicate = await guardAgainstDuplicateRequest(event, db, 'admin_update_post', parsed.data, 20);
+		if (!duplicate.ok) return fail(409, { updateError: duplicate.message });
 
 		try {
 			await updatePost(parsed.data.id!, parsed.data, db);
+			await writeAdminMutationLog(event, db, {
+				action: 'update_post',
+				entityType: 'post',
+				entityId: parsed.data.id,
+				summary: `Update post #${parsed.data.id} ke status ${parsed.data.status}`,
+				payload: { slug: parsed.data.slug, status: parsed.data.status, category: parsed.data.category }
+			});
 		} catch (error) {
 			return fail(400, { updateError: getOperatorErrorMessage(error, 'Post gagal diupdate.') });
 		}
@@ -64,7 +89,16 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const id = Number(stringValue(formData, 'id'));
 		if (!id) return fail(400, { deleteError: 'ID post tidak valid.' });
+		const duplicate = await guardAgainstDuplicateRequest(event, db, 'admin_delete_post', { id }, 20);
+		if (!duplicate.ok) return fail(409, { deleteError: duplicate.message });
 		await deletePost(id, db);
+		await writeAdminMutationLog(event, db, {
+			action: 'delete_post',
+			entityType: 'post',
+			entityId: id,
+			summary: `Delete post #${id}`,
+			payload: { id }
+		});
 		return { deleteSuccess: `Post #${id} dihapus.` };
 	},
 
@@ -75,7 +109,16 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const parsed = validateSubmissionStatus(formData);
 		if (!parsed.ok) return fail(400, { submissionError: parsed.error });
+		const duplicate = await guardAgainstDuplicateRequest(event, db, 'admin_review_submission', parsed.data, 20);
+		if (!duplicate.ok) return fail(409, { submissionError: duplicate.message });
 		await updateSubmissionStatus(parsed.data.id, parsed.data.status, db);
+		await writeAdminMutationLog(event, db, {
+			action: 'review_submission',
+			entityType: 'submission',
+			entityId: parsed.data.id,
+			summary: `Update submission #${parsed.data.id} ke ${parsed.data.status}`,
+			payload: parsed.data
+		});
 		return { submissionSuccess: `Submission #${parsed.data.id} diubah ke ${parsed.data.status}.` };
 	}
 };

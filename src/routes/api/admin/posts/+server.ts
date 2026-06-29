@@ -1,7 +1,9 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
+import { writeAdminMutationLog } from '$lib/server/audit';
 import { getDb } from '$lib/server/db';
 import { getOperatorErrorMessage } from '$lib/server/errors';
+import { guardAgainstDuplicateRequest } from '$lib/server/idempotency';
 import { createPost, listPosts } from '$lib/server/repositories/posts';
 import { validatePostPayload } from '$lib/server/validation';
 
@@ -18,9 +20,18 @@ export const POST: RequestHandler = async (event) => {
 	const body = await event.request.json().catch(() => null);
 	const parsed = validatePostPayload(body, 'create');
 	if (!parsed.ok) return json({ ok: false, error: parsed.error }, { status: 400 });
+	const duplicate = await guardAgainstDuplicateRequest(event, db, 'api_admin_create_post', parsed.data, 20);
+	if (!duplicate.ok) return json({ ok: false, error: duplicate.message }, { status: 409 });
 
 	try {
 		const result = await createPost(parsed.data, db);
+		await writeAdminMutationLog(event, db, {
+			action: 'api_create_post',
+			entityType: 'post',
+			entityId: result.id,
+			summary: `API create post ${parsed.data.slug}`,
+			payload: { slug: parsed.data.slug, status: parsed.data.status }
+		});
 		return json({ ok: true, result }, { status: 201 });
 	} catch (error) {
 		return json({ ok: false, error: getOperatorErrorMessage(error, 'Post gagal dibuat.') }, { status: 400 });

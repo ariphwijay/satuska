@@ -2,6 +2,7 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getDb } from '$lib/server/db';
 import { getOperatorErrorMessage } from '$lib/server/errors';
+import { guardAgainstDuplicateRequest } from '$lib/server/idempotency';
 import { createSubmission } from '$lib/server/repositories/submissions';
 import { validateSubmissionPayload } from '$lib/server/validation';
 
@@ -15,6 +16,10 @@ export const POST: RequestHandler = async (event) => {
 	const parsed = validateSubmissionPayload(body, mode);
 	if (!parsed.ok) {
 		error(400, parsed.error);
+	}
+	const duplicate = await guardAgainstDuplicateRequest(event, db, 'api_submission', parsed.data, 30);
+	if (!duplicate.ok) {
+		error(409, duplicate.message);
 	}
 
 	let submission;
