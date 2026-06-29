@@ -81,6 +81,7 @@
 							<span>published {data.distributionSummary.statusCounts.published}</span>
 						</div>
 						<p style="margin:.55rem 0 0;">Readiness: {data.distributionSummary.publishReadinessLabel}</p>
+						<p style="margin:.35rem 0 0;">Age draft {data.distributionSummary.aging.oldestDraftLabel} · review {data.distributionSummary.aging.oldestSeoReviewLabel}</p>
 					</div>
 					<div class="card">
 						<p style="margin:0 0 .35rem;"><strong>Submission flow</strong></p>
@@ -90,6 +91,7 @@
 							<span>rejected {data.distributionSummary.submissionCounts.rejected}</span>
 						</div>
 						<p style="margin:.55rem 0 0;">reviewing {data.distributionSummary.submissionCounts.reviewing} · received {data.distributionSummary.submissionCounts.received}</p>
+						<p style="margin:.35rem 0 0;">Oldest open {data.distributionSummary.aging.oldestOpenSubmissionLabel}</p>
 					</div>
 					<div class="card">
 						<p style="margin:0 0 .35rem;"><strong>Content mix</strong></p>

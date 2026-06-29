@@ -51,6 +51,21 @@ function hoursSince(value: string | null | undefined) {
 	return Math.floor((Date.now() - timestamp) / (1000 * 60 * 60));
 }
 
+function oldestHours(values: Array<string | null | undefined>) {
+	const hours = values
+		.map((value) => hoursSince(value))
+		.filter((value): value is number => value !== null);
+	if (hours.length === 0) return null;
+	return Math.max(...hours);
+}
+
+function formatAgeBadge(hours: number | null) {
+	if (hours === null) return 'Belum ada';
+	if (hours < 24) return `${hours}j`;
+	const days = Math.floor(hours / 24);
+	return `${days}h`;
+}
+
 function buildDistributionSummary(posts: Awaited<ReturnType<typeof listPosts>>, submissions: Awaited<ReturnType<typeof listSubmissions>>) {
 	const statusCounts = {
 		draft: posts.filter((post) => post.status === 'draft').length,
@@ -78,6 +93,17 @@ function buildDistributionSummary(posts: Awaited<ReturnType<typeof listPosts>>, 
 	const latestSubmission = submissions
 		.slice()
 		.sort((a, b) => (normalizeIsoish(b.updated_at ?? b.created_at) ?? 0) - (normalizeIsoish(a.updated_at ?? a.created_at) ?? 0))[0] ?? null;
+	const oldestDraftHours = oldestHours(
+		posts.filter((post) => post.status === 'draft').map((post) => post.updated_at ?? post.published_at)
+	);
+	const oldestSeoReviewHours = oldestHours(
+		posts.filter((post) => post.status === 'seo_review').map((post) => post.updated_at ?? post.published_at)
+	);
+	const oldestOpenSubmissionHours = oldestHours(
+		submissions
+			.filter((item) => item.status === 'received' || item.status === 'reviewing')
+			.map((item) => item.updated_at ?? item.created_at)
+	);
 
 	const dominantCategory = Object.entries(
 		posts.reduce<Record<string, number>>((acc, post) => {
@@ -115,6 +141,14 @@ function buildDistributionSummary(posts: Awaited<ReturnType<typeof listPosts>>, 
 			}
 			: null,
 		dominantCategory: dominantCategory ? { name: dominantCategory[0], count: dominantCategory[1] } : null,
+		aging: {
+			oldestDraftHours,
+			oldestDraftLabel: formatAgeBadge(oldestDraftHours),
+			oldestSeoReviewHours,
+			oldestSeoReviewLabel: formatAgeBadge(oldestSeoReviewHours),
+			oldestOpenSubmissionHours,
+			oldestOpenSubmissionLabel: formatAgeBadge(oldestOpenSubmissionHours)
+		},
 		publishReadinessLabel:
 			statusCounts.seoReview > 0
 				? 'Needs review'
@@ -139,40 +173,52 @@ function buildAdminWarnings(
 ) {
 	const warnings: AdminWarning[] = [];
 
-	if (distributionSummary.statusCounts.seoReview >= 5) {
+	if (
+		distributionSummary.statusCounts.seoReview >= 5 ||
+		(distributionSummary.aging.oldestSeoReviewHours ?? 0) >= 120
+	) {
 		warnings.push({
 			severity: 'critical',
 			title: 'SEO review macet',
-			detail: `${distributionSummary.statusCounts.seoReview} post tertahan di seo_review.`,
+			detail: `${distributionSummary.statusCounts.seoReview} post tertahan di seo_review. Umur tertua ${distributionSummary.aging.oldestSeoReviewLabel}.`,
 			score: 95,
 			ctaLabel: 'Lihat post review',
 			ctaHref: '#edit-posts'
 		});
-	} else if (distributionSummary.statusCounts.seoReview >= 3) {
+	} else if (
+		distributionSummary.statusCounts.seoReview >= 3 ||
+		(distributionSummary.aging.oldestSeoReviewHours ?? 0) >= 72
+	) {
 		warnings.push({
 			severity: 'warn',
 			title: 'SEO review menumpuk',
-			detail: `${distributionSummary.statusCounts.seoReview} post masih di seo_review.`,
+			detail: `${distributionSummary.statusCounts.seoReview} post masih di seo_review. Umur tertua ${distributionSummary.aging.oldestSeoReviewLabel}.`,
 			score: 72,
 			ctaLabel: 'Review post',
 			ctaHref: '#edit-posts'
 		});
 	}
 
-	if (distributionSummary.openSubmissionCount >= 6) {
+	if (
+		distributionSummary.openSubmissionCount >= 6 ||
+		(distributionSummary.aging.oldestOpenSubmissionHours ?? 0) >= 96
+	) {
 		warnings.push({
 			severity: 'critical',
 			title: 'Submission open sangat tinggi',
-			detail: `${distributionSummary.openSubmissionCount} submission belum ditutup atau diproses.`,
+			detail: `${distributionSummary.openSubmissionCount} submission belum ditutup atau diproses. Umur tertua ${distributionSummary.aging.oldestOpenSubmissionLabel}.`,
 			score: 90,
 			ctaLabel: 'Buka submission',
 			ctaHref: '#submission-review'
 		});
-	} else if (distributionSummary.openSubmissionCount >= 4) {
+	} else if (
+		distributionSummary.openSubmissionCount >= 4 ||
+		(distributionSummary.aging.oldestOpenSubmissionHours ?? 0) >= 48
+	) {
 		warnings.push({
 			severity: 'warn',
 			title: 'Submission open tinggi',
-			detail: `${distributionSummary.openSubmissionCount} submission masih butuh tindak lanjut.`,
+			detail: `${distributionSummary.openSubmissionCount} submission masih butuh tindak lanjut. Umur tertua ${distributionSummary.aging.oldestOpenSubmissionLabel}.`,
 			score: 68,
 			ctaLabel: 'Triage submission',
 			ctaHref: '#submission-review'
@@ -200,20 +246,26 @@ function buildAdminWarnings(
 		});
 	}
 
-	if (distributionSummary.statusCounts.draft >= 8 && distributionSummary.statusCounts.published === 0) {
+	if (
+		distributionSummary.statusCounts.draft >= 8 ||
+		(distributionSummary.aging.oldestDraftHours ?? 0) >= 120
+	) {
 		warnings.push({
 			severity: 'critical',
 			title: 'Queue draft tersumbat',
-			detail: `${distributionSummary.statusCounts.draft} draft aktif tapi belum ada post published.`,
+			detail: `${distributionSummary.statusCounts.draft} draft aktif. Umur tertua ${distributionSummary.aging.oldestDraftLabel}.`,
 			score: 88,
 			ctaLabel: 'Buka draft queue',
 			ctaHref: '#edit-posts'
 		});
-	} else if (distributionSummary.statusCounts.draft >= 5 && distributionSummary.statusCounts.published === 0) {
+	} else if (
+		distributionSummary.statusCounts.draft >= 5 ||
+		(distributionSummary.aging.oldestDraftHours ?? 0) >= 72
+	) {
 		warnings.push({
 			severity: 'warn',
-			title: 'Queue draft belum tembus publish',
-			detail: `${distributionSummary.statusCounts.draft} draft aktif tapi belum ada post published.`,
+			title: 'Queue draft menua',
+			detail: `${distributionSummary.statusCounts.draft} draft aktif. Umur tertua ${distributionSummary.aging.oldestDraftLabel}.`,
 			score: 66,
 			ctaLabel: 'Lihat draft',
 			ctaHref: '#edit-posts'
