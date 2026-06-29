@@ -5,6 +5,7 @@ import {
 	ADMIN_AUDIT_MAX_ROWS,
 	ADMIN_AUDIT_PAGE_SIZE,
 	ADMIN_AUDIT_RETENTION_DAYS,
+	getAdminAuditAnalyticsSummary,
 	getAdminAuditHousekeepingSummary,
 	getAdminMutationLogSummary,
 	pruneAdminMutationLogs,
@@ -45,10 +46,11 @@ export const load: ServerLoad = async (event) => {
 		},
 		ADMIN_AUDIT_PAGE_SIZE
 	);
-	const [posts, submissions, auditSummary, auditHousekeeping, idempotencyHousekeeping] = await Promise.all([
+	const [posts, submissions, auditSummary, auditAnalytics, auditHousekeeping, idempotencyHousekeeping] = await Promise.all([
 		listPosts(db),
 		listSubmissions(db),
 		auditSummaryPromise,
+		getAdminAuditAnalyticsSummary(db),
 		getAdminAuditHousekeepingSummary(db),
 		getIdempotencyHousekeepingSummary(db)
 	]);
@@ -66,6 +68,7 @@ export const load: ServerLoad = async (event) => {
 		auditTotalPages: auditSummary.totalPages,
 		auditRangeStart: auditSummary.rangeStart,
 		auditRangeEnd: auditSummary.rangeEnd,
+		auditAnalytics,
 		auditHousekeeping,
 		idempotencyHousekeeping,
 		auditRetentionDays: ADMIN_AUDIT_RETENTION_DAYS,

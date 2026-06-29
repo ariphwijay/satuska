@@ -55,6 +55,17 @@ export type AdminAuditHousekeepingSummary = {
 	maxRows: number;
 };
 
+export type AdminAuditAnalyticsSummary = {
+	totalRows: number;
+	last24HoursCount: number;
+	last7DaysCount: number;
+	averagePerDayLast7Days: number;
+	hotAction: { label: string; count: number } | null;
+	hotEntityType: { label: string; count: number } | null;
+	latestCreatedAt: string | null;
+	recentWindowLabel: 'quiet' | 'active' | 'busy';
+};
+
 function requestMeta(event: RequestEvent) {
 	return {
 		ip: event.request.headers.get('cf-connecting-ip') ?? event.getClientAddress?.() ?? 'unknown',
@@ -207,6 +218,80 @@ export async function listRecentAdminMutationLogs(db: D1Database | null = null, 
 		.bind(limit)
 		.all<AdminMutationLog>();
 	return result.results ?? [];
+}
+
+export async function getAdminAuditAnalyticsSummary(
+	db: D1Database | null = null
+): Promise<AdminAuditAnalyticsSummary> {
+	if (!db) {
+		return {
+			totalRows: 0,
+			last24HoursCount: 0,
+			last7DaysCount: 0,
+			averagePerDayLast7Days: 0,
+			hotAction: null,
+			hotEntityType: null,
+			latestCreatedAt: null,
+			recentWindowLabel: 'quiet'
+		};
+	}
+
+	const [
+		totalResult,
+		last24HoursResult,
+		last7DaysResult,
+		hotActionResult,
+		hotEntityResult,
+		latestResult
+	] = await Promise.all([
+		db.prepare(`SELECT COUNT(*) AS count FROM admin_mutation_logs`).first<{ count: number }>(),
+		db
+			.prepare(`SELECT COUNT(*) AS count FROM admin_mutation_logs WHERE created_at >= datetime('now', '-1 day')`)
+			.first<{ count: number }>(),
+		db
+			.prepare(`SELECT COUNT(*) AS count FROM admin_mutation_logs WHERE created_at >= datetime('now', '-7 days')`)
+			.first<{ count: number }>(),
+		db
+			.prepare(`
+				SELECT action, COUNT(*) AS count
+				FROM admin_mutation_logs
+				WHERE created_at >= datetime('now', '-7 days')
+				GROUP BY action
+				ORDER BY count DESC, action ASC
+				LIMIT 1
+			`)
+			.first<{ action: string; count: number }>(),
+		db
+			.prepare(`
+				SELECT entity_type, COUNT(*) AS count
+				FROM admin_mutation_logs
+				WHERE created_at >= datetime('now', '-7 days')
+				GROUP BY entity_type
+				ORDER BY count DESC, entity_type ASC
+				LIMIT 1
+			`)
+			.first<{ entity_type: string; count: number }>(),
+		db
+			.prepare(`SELECT created_at FROM admin_mutation_logs ORDER BY datetime(created_at) DESC, id DESC LIMIT 1`)
+			.first<{ created_at: string }>()
+	]);
+
+	const totalRows = Number(totalResult?.count ?? 0);
+	const last24HoursCount = Number(last24HoursResult?.count ?? 0);
+	const last7DaysCount = Number(last7DaysResult?.count ?? 0);
+	const averagePerDayLast7Days = Number((last7DaysCount / 7).toFixed(1));
+	const recentWindowLabel = last24HoursCount >= 8 ? 'busy' : last24HoursCount >= 3 ? 'active' : 'quiet';
+
+	return {
+		totalRows,
+		last24HoursCount,
+		last7DaysCount,
+		averagePerDayLast7Days,
+		hotAction: hotActionResult ? { label: hotActionResult.action, count: Number(hotActionResult.count ?? 0) } : null,
+		hotEntityType: hotEntityResult ? { label: hotEntityResult.entity_type, count: Number(hotEntityResult.count ?? 0) } : null,
+		latestCreatedAt: latestResult?.created_at ?? null,
+		recentWindowLabel
+	};
 }
 
 export async function getAdminMutationLogSummary(

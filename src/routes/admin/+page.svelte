@@ -172,6 +172,29 @@
 
 			<div class="admin-card">
 				<h3>Audit trail mutation terbaru</h3>
+				<div class="form-grid" style="margin-bottom:1rem;">
+					<div class="card">
+						<p style="margin:0 0 .35rem;"><strong>24 jam</strong></p>
+						<p style="margin:0; font-size:1.4rem; font-weight:700;">{data.auditAnalytics.last24HoursCount}</p>
+						<p style="margin:.35rem 0 0;">Status: {data.auditAnalytics.recentWindowLabel}</p>
+					</div>
+					<div class="card">
+						<p style="margin:0 0 .35rem;"><strong>7 hari</strong></p>
+						<p style="margin:0; font-size:1.4rem; font-weight:700;">{data.auditAnalytics.last7DaysCount}</p>
+						<p style="margin:.35rem 0 0;">Avg/hari: {data.auditAnalytics.averagePerDayLast7Days}</p>
+					</div>
+					<div class="card">
+						<p style="margin:0 0 .35rem;"><strong>Action terpanas</strong></p>
+						<p style="margin:0;">{data.auditAnalytics.hotAction ? `${data.auditAnalytics.hotAction.label} · ${data.auditAnalytics.hotAction.count}x` : 'Belum ada data'}</p>
+						<p style="margin:.35rem 0 0;">Entity: {data.auditAnalytics.hotEntityType ? `${data.auditAnalytics.hotEntityType.label} · ${data.auditAnalytics.hotEntityType.count}x` : 'Belum ada data'}</p>
+					</div>
+					<div class="card">
+						<p style="margin:0 0 .35rem;"><strong>Aktivitas terakhir</strong></p>
+						<p style="margin:0;">{data.auditAnalytics.latestCreatedAt ?? 'Belum ada log'}</p>
+						<p style="margin:.35rem 0 0;">Total log: {data.auditAnalytics.totalRows}</p>
+					</div>
+				</div>
+
 				<form method="GET" class="stack" style="margin-bottom:1rem; gap:.75rem;">
 					<div class="form-grid">
 						<label>Filter action
