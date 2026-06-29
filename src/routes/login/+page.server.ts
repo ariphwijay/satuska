@@ -8,6 +8,7 @@ import {
 } from '$lib/server/auth';
 import { getDb } from '$lib/server/db';
 import { enforceRateLimit } from '$lib/server/rate-limit';
+import { validateLoginPassword } from '$lib/server/validation';
 
 export const load: ServerLoad = async (event) => {
 	const next = sanitizeNext(event.url.searchParams.get('next'));
@@ -35,7 +36,11 @@ export const actions: Actions = {
 		}
 
 		const formData = await event.request.formData();
-		const password = String(formData.get('password') ?? '');
+		const parsed = validateLoginPassword(formData);
+		if (!parsed.ok) {
+			return fail(400, { error: parsed.error });
+		}
+		const { password } = parsed.data;
 		const next = sanitizeNext(String(formData.get('next') ?? '/admin'));
 
 		if (!hasAdminAuthConfig(event)) {

@@ -3,10 +3,7 @@ import type { Actions } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import { enforceRateLimit } from '$lib/server/rate-limit';
 import { createSubmission } from '$lib/server/repositories/submissions';
-
-function stringValue(formData: FormData, key: string) {
-	return String(formData.get(key) ?? '').trim();
-}
+import { validateSubmission } from '$lib/server/validation';
 
 export const actions: Actions = {
 	default: async (event) => {
@@ -24,28 +21,12 @@ export const actions: Actions = {
 		}
 
 		const formData = await event.request.formData();
-		const name = stringValue(formData, 'name');
-		const email = stringValue(formData, 'email');
-		const topic = stringValue(formData, 'topic');
-		const message = stringValue(formData, 'message');
-		if (!name || !email || !topic || !message) {
-			return fail(400, { error: 'Nama, email, topik, dan pesan wajib diisi.' });
+		const parsed = validateSubmission(formData, 'write_for_us');
+		if (!parsed.ok) {
+			return fail(400, { error: parsed.error });
 		}
 
-		await createSubmission(
-			{
-				name,
-				email,
-				company: stringValue(formData, 'company'),
-				siteUrl: stringValue(formData, 'siteUrl'),
-				targetUrl: stringValue(formData, 'targetUrl'),
-				topic,
-				message,
-				submissionType: 'guest_post',
-				desiredPackage: stringValue(formData, 'desiredPackage')
-			},
-			db
-		);
+		await createSubmission(parsed.data, db);
 
 		return { success: 'Pitch guest post sudah masuk ke review queue.' };
 	}
