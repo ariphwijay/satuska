@@ -1,6 +1,9 @@
 import { json } from '@sveltejs/kit';
-import { publishedArticles } from '$lib/content';
+import type { RequestHandler } from './$types';
+import { getDb } from '$lib/server/db';
+import { listPublishedPosts } from '$lib/server/repositories/posts';
 
-export function GET() {
-	return json(publishedArticles());
-}
+export const GET: RequestHandler = async (event) => {
+	const posts = await listPublishedPosts(getDb(event));
+	return json(posts);
+};

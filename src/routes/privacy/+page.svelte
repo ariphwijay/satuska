@@ -1,1 +1,1 @@
-<svelte:head><title>Privacy — AI Copyright Legal</title></svelte:head><section class="section"><p class="eyebrow">Privacy</p><h1>Privacy policy</h1><p class="lede">This starter page is ready for final legal copy before launch.</p></section>
+<svelte:head><title>Privacy — Satuska</title></svelte:head><section class="section"><p class="eyebrow">Privacy</p><h1>Privacy policy placeholder</h1><p class="lede">Replace this with the production privacy policy before launch. Admin, submissions, and analytics behavior should be documented here.</p></section>

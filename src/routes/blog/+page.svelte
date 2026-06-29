@@ -1,25 +1,41 @@
 <script lang="ts">
-	import { publishedArticles } from '$lib/content';
-	const articles = publishedArticles();
+	import { publishedPosts, site } from '$lib/content';
+
+	const posts = publishedPosts();
 </script>
 
 <svelte:head>
-	<title>Blog — AI Copyright Legal</title>
-	<meta name="description" content="Latest AI copyright law guides, lawsuit analysis, fair use explainers, and compliance updates." />
-	<link rel="canonical" href="https://aicopyrightlegal.com/blog" />
+	<title>Blog — {site.name}</title>
+	<meta
+		name="description"
+		content="Home improvement posts, room guides, decor ideas, and commercial-intent articles ready for guest-post and affiliate expansion."
+	/>
+	<link rel="canonical" href={`${site.url}/blog`} />
 </svelte:head>
 
 <section class="section">
 	<p class="eyebrow">Blog</p>
-	<h1>AI copyright articles</h1>
-	<p class="lede">Published analysis and practical guides. In production this route can read published rows from D1; this build ships with fallback seed content.</p>
+	<h1>Editorial content that can grow into a real publisher workflow.</h1>
+	<p class="lede">
+		Phase 1 uses seeded posts so the public reading surface, schema, listing behavior, and content direction are already visible.
+	</p>
+
 	<div class="article-list">
-		{#each articles as article}
-			<a class="article-card" href={`/blog/${article.slug}`}>
-				<div class="meta"><span class="badge">{article.category}</span><span>{article.published_at}</span><span>{article.read_time}</span></div>
-				<h2>{article.title}</h2>
-				<p>{article.excerpt}</p>
-				<div class="tag-row">{#each article.tags as tag}<span class="tag">{tag}</span>{/each}</div>
+		{#each posts as post}
+			<a class="article-card" href={`/blog/${post.slug}`}>
+				<div class="meta">
+					<span class="badge">{post.category}</span>
+					<span>{post.intent}</span>
+					<span>{post.monetization}</span>
+					<span>{post.published_at}</span>
+				</div>
+				<h2>{post.title}</h2>
+				<p>{post.excerpt}</p>
+				<div class="tag-row">
+					{#each post.tags as tag}
+						<span class="tag">{tag}</span>
+					{/each}
+				</div>
 			</a>
 		{/each}
 	</div>

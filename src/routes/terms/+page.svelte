@@ -1,1 +1,1 @@
-<svelte:head><title>Terms — AI Copyright Legal</title></svelte:head><section class="section"><p class="eyebrow">Terms</p><h1>Terms of use</h1><p class="lede">Content is informational and not legal advice. Consult qualified counsel for specific legal questions.</p></section>
+<svelte:head><title>Terms — Satuska</title></svelte:head><section class="section"><p class="eyebrow">Terms</p><h1>Terms of use placeholder</h1><p class="lede">Replace this with production terms covering editorial content, sponsored placements, and contributor submissions.</p></section>

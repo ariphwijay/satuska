@@ -1,47 +1,62 @@
 <script lang="ts">
-	import { articles, cases, guides, lawPages } from '$lib/content';
-	const latest = articles.slice(0, 3);
+	import { categorySeeds, featuredPosts, site, submissionPackages } from '$lib/content';
+
+	const heroPosts = featuredPosts().slice(0, 3);
 </script>
 
 <svelte:head>
-	<title>AI Copyright Legal — AI copyright law, lawsuits, fair use, compliance</title>
-	<meta name="description" content="Track AI copyright lawsuits, fair use, compliance, and international regulation with practical explainers for creators, developers, lawyers, and businesses." />
-	<link rel="canonical" href="https://aicopyrightlegal.com/" />
+	<title>Satuska — Home improvement blog scaffold for guest-post publishing</title>
+	<meta
+		name="description"
+		content="Satuska is a home improvement publishing scaffold: blog-first, guest-post ready, with optional affiliate and local SEO modules later."
+	/>
+	<link rel="canonical" href={`${site.url}/`} />
 </svelte:head>
 
 <section class="hero">
 	<div class="hero-grid">
 		<div>
-			<p class="eyebrow">AI copyright law tracker</p>
-			<h1>Legal clarity for the AI copyright era.</h1>
-			<p class="lede">News, case tracking, practical guides, and compliance tools for teams using generative AI in public, commercial, and regulated work.</p>
+			<p class="eyebrow">Phase 1 scaffold</p>
+			<h1>Home improvement blog engine, ready for guest-post workflow.</h1>
+			<p class="lede">
+				Satuska starts as a practical publisher: editorial posts, category structure, contributor pages, and an
+				operator-first admin shell. Local SEO and multisite stay optional.
+			</p>
 			<div class="actions">
-				<a class="button" href="/blog">Read latest analysis</a>
-				<a class="button secondary" href="/cases">Track active cases</a>
+				<a class="button" href="/blog">Lihat artikel</a>
+				<a class="button secondary" href="/write-for-us">Write for us</a>
 			</div>
 		</div>
+
 		<aside class="panel dark">
-			<p class="eyebrow">Operational focus</p>
-			<h2>Built for publishing + monitoring</h2>
-			<p>This SvelteKit build keeps the public site, blog renderer, API routes, D1 schema, and lightweight admin in one Cloudflare-ready repo.</p>
+			<p class="eyebrow">Core mode</p>
+			<h2>Blog + guest post dulu.</h2>
+			<p>
+				Spec sekarang diterjemahkan ke fase 1 yang ringan: content hub, monetization surfaces, admin shell,
+				and initial D1 tables.
+			</p>
 			<div class="kpi-row">
-				<div class="kpi"><strong>{articles.length}</strong><span>seed articles</span></div>
-				<div class="kpi"><strong>{cases.length}</strong><span>tracked cases</span></div>
-				<div class="kpi"><strong>{lawPages.length}</strong><span>law hubs</span></div>
+				<div class="kpi"><strong>{heroPosts.length}</strong><span>featured seed posts</span></div>
+				<div class="kpi"><strong>{categorySeeds.length}</strong><span>category seeds</span></div>
+				<div class="kpi"><strong>{submissionPackages.length}</strong><span>submission packages</span></div>
 			</div>
 		</aside>
 	</div>
 </section>
 
 <section class="section">
-	<p class="eyebrow">Latest articles</p>
-	<h2>Guides and analysis that link law to workflow.</h2>
+	<p class="eyebrow">Featured content</p>
+	<h2>Editorial seeds for room guides, decor, and commercial-intent content.</h2>
 	<div class="card-grid">
-		{#each latest as article}
-			<a class="article-card" href={`/blog/${article.slug}`}>
-				<div class="meta"><span class="badge">{article.category}</span><span>{article.read_time}</span></div>
-				<h3>{article.title}</h3>
-				<p>{article.excerpt}</p>
+		{#each heroPosts as post}
+			<a class="article-card" href={`/blog/${post.slug}`}>
+				<div class="meta">
+					<span class="badge">{post.category}</span>
+					<span>{post.intent}</span>
+					<span>{post.read_time}</span>
+				</div>
+				<h3>{post.title}</h3>
+				<p>{post.excerpt}</p>
 			</a>
 		{/each}
 	</div>
@@ -49,13 +64,40 @@
 
 <section class="section two-col">
 	<div>
-		<p class="eyebrow">Education hubs</p>
-		<h2>Answer the high-intent questions before they become legal problems.</h2>
-		<p>Static guide routes are ready for deeper 2,000+ word articles, internal links, and schema expansion.</p>
+		<p class="eyebrow">Core clusters</p>
+		<h2>Keep the first build intentionally narrow.</h2>
+		<p>
+			The current scaffold supports a content publisher workflow first. Optional modules like local SEO, affiliate,
+			and multi-site controls can layer on top later.
+		</p>
 	</div>
-	<div class="table-like">
-		{#each guides.slice(0, 4) as guide}
-			<a class="row" href={guide.href}><span>{guide.title}</span><span>→</span></a>
-		{/each}
+	<div class="stack">
+		<div class="row"><span>Room guides & renovation tips</span><span>Core</span></div>
+		<div class="row"><span>Guest-post intake + advertise pages</span><span>Core</span></div>
+		<div class="row"><span>Affiliate comparison surfaces</span><span>Optional</span></div>
+		<div class="row"><span>Local SEO location/service pages</span><span>Optional</span></div>
+		<div class="row"><span>Project setup for future multi-site mode</span><span>Future-ready</span></div>
+	</div>
+</section>
+
+<section class="section">
+	<p class="eyebrow">What phase 1 includes</p>
+	<div class="cluster-grid">
+		<div class="info-strip">
+			<h3>Public site</h3>
+			<ul class="list-clean">
+				<li>Homepage scaffold</li>
+				<li>Blog list + article detail</li>
+				<li>Write for us / advertise / contact pages</li>
+			</ul>
+		</div>
+		<div class="info-strip">
+			<h3>Operator side</h3>
+			<ul class="list-clean">
+				<li>Admin overview shell</li>
+				<li>Project setup placeholders</li>
+				<li>Content / monetization / workflow sections</li>
+			</ul>
+		</div>
 	</div>
 </section>

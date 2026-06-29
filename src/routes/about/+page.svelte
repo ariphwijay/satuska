@@ -1,1 +1,2 @@
-<svelte:head><title>About — AI Copyright Legal</title></svelte:head><section class="section"><p class="eyebrow">About</p><h1>Independent AI copyright law coverage.</h1><p class="lede">AI Copyright Legal tracks lawsuits, regulation, and compliance practices for teams building and publishing with AI.</p></section>
+<svelte:head><title>About — Satuska</title></svelte:head>
+<section class="section"><p class="eyebrow">About</p><h1>Satuska is a home improvement publisher scaffold.</h1><p class="lede">Phase 1 positions the project as a blog-first editorial system with guest-post monetization, plus optional affiliate and local SEO expansion later.</p></section>

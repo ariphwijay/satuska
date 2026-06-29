@@ -1,16 +1,18 @@
 <script lang="ts">
+	import { site } from '$lib/content';
+
 	let { data } = $props();
-	let article = $derived(data.article);
+	let post = $derived(data.post);
 	let jsonLd = $derived({
 		'@context': 'https://schema.org',
-		'@type': 'NewsArticle',
-		headline: article.title,
-		description: article.seo_description ?? article.excerpt,
-		datePublished: article.published_at,
-		dateModified: article.updated_at,
-		author: { '@type': 'Organization', name: 'AI Copyright Legal' },
-		publisher: { '@type': 'Organization', name: 'AI Copyright Legal' },
-		mainEntityOfPage: `https://aicopyrightlegal.com/blog/${article.slug}`
+		'@type': post.intent === 'commercial' ? 'Article' : 'BlogPosting',
+		headline: post.title,
+		description: post.seo_description ?? post.excerpt,
+		datePublished: post.published_at,
+		dateModified: post.updated_at,
+		author: { '@type': 'Organization', name: site.name },
+		publisher: { '@type': 'Organization', name: site.name },
+		mainEntityOfPage: `${site.url}/blog/${post.slug}`
 	});
 
 	function markdownToHtml(markdown: string) {
@@ -29,20 +31,32 @@
 </script>
 
 <svelte:head>
-	<title>{article.seo_title ?? article.title} — AI Copyright Legal</title>
-	<meta name="description" content={article.seo_description ?? article.excerpt} />
-	<link rel="canonical" href={`https://aicopyrightlegal.com/blog/${article.slug}`} />
-	<meta property="og:title" content={article.title} />
-	<meta property="og:description" content={article.excerpt} />
+	<title>{post.seo_title ?? post.title} — {site.name}</title>
+	<meta name="description" content={post.seo_description ?? post.excerpt} />
+	<link rel="canonical" href={`${site.url}/blog/${post.slug}`} />
+	<meta property="og:title" content={post.title} />
+	<meta property="og:description" content={post.excerpt} />
 	<meta property="og:type" content="article" />
 	<script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
 </svelte:head>
 
 <article class="article">
-	<div class="meta"><a href="/blog">← Blog</a><span class="badge">{article.category}</span><span>{article.published_at}</span><span>{article.read_time}</span></div>
-	<h1>{article.title}</h1>
-	<p class="lede">{article.excerpt}</p>
-	<div class="prose">{@html markdownToHtml(article.content)}</div>
+	<div class="meta">
+		<a href="/blog">← Blog</a>
+		<span class="badge">{post.category}</span>
+		<span>{post.intent}</span>
+		<span>{post.monetization}</span>
+		<span>{post.read_time}</span>
+	</div>
+	<h1>{post.title}</h1>
+	<p class="lede">{post.excerpt}</p>
+	<div class="tag-row">
+		{#each post.tags as tag}
+			<span class="tag">{tag}</span>
+		{/each}
+	</div>
+	<div class="prose">{@html markdownToHtml(post.content)}</div>
+
 	<section class="section" style="padding-left:0;padding-right:0;">
 		<p class="eyebrow">Related reading</p>
 		<div class="card-grid">
