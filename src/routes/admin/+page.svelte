@@ -149,10 +149,13 @@
 					<h3>Operational risk board</h3>
 					<div class="stack" style="gap:.75rem;">
 						{#each data.operationalRiskBoard as item}
-							<div class={`card severity-${item.severity}`}>
+							<div class={`card severity-${item.severity} ${item.isPrimary ? 'primary-risk-card' : ''}`}>
 								<div class="meta" style="justify-content:space-between; align-items:center; gap:.75rem; flex-wrap:wrap;">
 									<strong>{item.label}</strong>
-									<span class="badge">{item.score.toFixed(0)} · {item.severity}</span>
+									<div class="meta" style="gap:.45rem;">
+										<span class="badge">{item.priorityLabel}</span>
+										<span class="badge">{item.score.toFixed(0)} · {item.severity}</span>
+									</div>
 								</div>
 								<p style="margin:.55rem 0 0;">{item.detail}</p>
 								<div class="actions" style="justify-content:flex-start; margin-top:.75rem;">
@@ -464,5 +467,11 @@
 
 	.aging-board :global(.severity-empty) {
 		background: color-mix(in srgb, #94a3b8 12%, white);
+	}
+
+	.primary-risk-card {
+		outline: 2px solid color-mix(in srgb, #f59e0b 55%, white);
+		box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
+		transform: translateY(-2px);
 	}
 </style>

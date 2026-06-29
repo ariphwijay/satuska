@@ -195,8 +195,9 @@ type RiskBoardItem = {
 	detail: string;
 	ctaLabel: string;
 	ctaHref: string;
+	priorityLabel: string;
+	isPrimary: boolean;
 };
-
 function buildAdminWarnings(
 	distributionSummary: ReturnType<typeof buildDistributionSummary>,
 	auditAnalytics: Awaited<ReturnType<typeof getAdminAuditAnalyticsSummary>>
@@ -346,11 +347,10 @@ function buildOperationalRiskBoard(
 	distributionSummary: ReturnType<typeof buildDistributionSummary>,
 	auditAnalytics: Awaited<ReturnType<typeof getAdminAuditAnalyticsSummary>>
 ) {
-	const items: RiskBoardItem[] = [
+	const baseItems = [
 		{
 			label: 'Draft pipeline',
 			score: Math.min(100, distributionSummary.statusCounts.draft * 8 + (distributionSummary.aging.oldestDraftHours ?? 0) / 2),
-			severity: 'info',
 			detail: `${distributionSummary.statusCounts.draft} draft · oldest ${distributionSummary.aging.oldestDraftLabel}`,
 			ctaLabel: 'Buka draft',
 			ctaHref: '#edit-posts'
@@ -358,7 +358,6 @@ function buildOperationalRiskBoard(
 		{
 			label: 'SEO review pipeline',
 			score: Math.min(100, distributionSummary.statusCounts.seoReview * 14 + (distributionSummary.aging.oldestSeoReviewHours ?? 0) / 1.6),
-			severity: 'info',
 			detail: `${distributionSummary.statusCounts.seoReview} review · oldest ${distributionSummary.aging.oldestSeoReviewLabel}`,
 			ctaLabel: 'Review post',
 			ctaHref: '#edit-posts'
@@ -366,7 +365,6 @@ function buildOperationalRiskBoard(
 		{
 			label: 'Submission pipeline',
 			score: Math.min(100, distributionSummary.openSubmissionCount * 12 + (distributionSummary.aging.oldestOpenSubmissionHours ?? 0) / 1.8),
-			severity: 'info',
 			detail: `${distributionSummary.openSubmissionCount} open · oldest ${distributionSummary.aging.oldestOpenSubmissionLabel}`,
 			ctaLabel: 'Buka submission',
 			ctaHref: '#submission-review'
@@ -374,17 +372,22 @@ function buildOperationalRiskBoard(
 		{
 			label: 'Admin activity pressure',
 			score: Math.min(100, auditAnalytics.last24HoursCount * 4 + auditAnalytics.last7DaysCount),
-			severity: 'info',
 			detail: `${auditAnalytics.last24HoursCount} mutation / 24j · status ${auditAnalytics.recentWindowLabel}`,
 			ctaLabel: 'Buka audit',
 			ctaHref: '#audit-trail'
 		}
-	].map((item) => ({
-		...item,
-		severity: scoreToSeverity(item.score)
-	}));
+	];
 
-	return items.sort((a, b) => b.score - a.score);
+	const ranked: RiskBoardItem[] = baseItems
+		.sort((a, b) => b.score - a.score)
+		.map((item, index) => ({
+			...item,
+			severity: scoreToSeverity(item.score),
+			priorityLabel: index === 0 ? 'Top risk' : index === 1 ? 'Watch closely' : 'Monitor',
+			isPrimary: index === 0
+		}));
+
+	return ranked;
 }
 
 export const load: ServerLoad = async (event) => {
