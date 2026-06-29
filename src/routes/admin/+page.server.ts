@@ -3,6 +3,7 @@ import type { Actions, ServerLoad } from '@sveltejs/kit';
 import { categorySeeds } from '$lib/content';
 import {
 	ADMIN_AUDIT_MAX_ROWS,
+	ADMIN_AUDIT_PAGE_SIZE,
 	ADMIN_AUDIT_RETENTION_DAYS,
 	getAdminAuditHousekeepingSummary,
 	getAdminMutationLogSummary,
@@ -37,9 +38,12 @@ export const load: ServerLoad = async (event) => {
 		{
 			action: event.url.searchParams.get('auditAction'),
 			entityType: event.url.searchParams.get('auditEntity'),
-			selectedId: positiveNumber(event.url.searchParams.get('auditLog'))
+			entityId: positiveNumber(event.url.searchParams.get('auditEntityId')),
+			query: event.url.searchParams.get('auditQuery'),
+			selectedId: positiveNumber(event.url.searchParams.get('auditLog')),
+			page: positiveNumber(event.url.searchParams.get('auditPage')) ?? 1
 		},
-		16
+		ADMIN_AUDIT_PAGE_SIZE
 	);
 	const [posts, submissions, auditSummary, auditHousekeeping, idempotencyHousekeeping] = await Promise.all([
 		listPosts(db),
@@ -56,6 +60,12 @@ export const load: ServerLoad = async (event) => {
 		availableAuditActions: auditSummary.availableActions,
 		availableAuditEntityTypes: auditSummary.availableEntityTypes,
 		selectedAuditMutation: auditSummary.selectedMutation,
+		auditTotalCount: auditSummary.totalCount,
+		auditPage: auditSummary.page,
+		auditPageSize: auditSummary.pageSize,
+		auditTotalPages: auditSummary.totalPages,
+		auditRangeStart: auditSummary.rangeStart,
+		auditRangeEnd: auditSummary.rangeEnd,
 		auditHousekeeping,
 		idempotencyHousekeeping,
 		auditRetentionDays: ADMIN_AUDIT_RETENTION_DAYS,

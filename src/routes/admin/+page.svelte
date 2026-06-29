@@ -171,6 +171,12 @@
 								{/each}
 							</select>
 						</label>
+						<label>Entity ID
+							<input name="auditEntityId" inputmode="numeric" placeholder="mis. 14" value={data.auditFilters.entityId ?? ''} />
+						</label>
+						<label>Cari keyword / slug
+							<input name="auditQuery" placeholder="summary atau payload" value={data.auditFilters.query} />
+						</label>
 					</div>
 					<div class="actions" style="justify-content:flex-start;">
 						<button class="button secondary" type="submit">Apply filter</button>
@@ -198,6 +204,17 @@
 				{#if data.recentMutations.length === 0}
 					<p>Belum ada log mutation admin.</p>
 				{:else}
+					<div class="card" style="margin-bottom:1rem;">
+						<div class="meta" style="justify-content:space-between; align-items:center; gap:.75rem; flex-wrap:wrap;">
+							<span>Menampilkan {data.auditRangeStart}–{data.auditRangeEnd} dari {data.auditTotalCount} log</span>
+							<span>Halaman {data.auditPage} / {data.auditTotalPages}</span>
+						</div>
+						<div class="actions" style="justify-content:flex-start; margin-top:.85rem;">
+							<a class="button secondary" href={`?auditAction=${encodeURIComponent(data.auditFilters.action || '')}&auditEntity=${encodeURIComponent(data.auditFilters.entityType || '')}&auditEntityId=${data.auditFilters.entityId ?? ''}&auditQuery=${encodeURIComponent(data.auditFilters.query || '')}&auditLog=${data.auditFilters.selectedId ?? ''}&auditPage=${Math.max(1, data.auditPage - 1)}`} aria-disabled={data.auditPage <= 1} style:opacity={data.auditPage <= 1 ? 0.45 : 1} style:pointer-events={data.auditPage <= 1 ? 'none' : 'auto'}>← Prev</a>
+							<a class="button secondary" href={`?auditAction=${encodeURIComponent(data.auditFilters.action || '')}&auditEntity=${encodeURIComponent(data.auditFilters.entityType || '')}&auditEntityId=${data.auditFilters.entityId ?? ''}&auditQuery=${encodeURIComponent(data.auditFilters.query || '')}&auditLog=${data.auditFilters.selectedId ?? ''}&auditPage=${Math.min(data.auditTotalPages, data.auditPage + 1)}`} aria-disabled={data.auditPage >= data.auditTotalPages} style:opacity={data.auditPage >= data.auditTotalPages ? 0.45 : 1} style:pointer-events={data.auditPage >= data.auditTotalPages ? 'none' : 'auto'}>Next →</a>
+						</div>
+					</div>
+
 					<div class="stack">
 						{#each data.recentMutations as item}
 							<div class="card">
@@ -209,7 +226,7 @@
 								<p><strong>{item.summary}</strong></p>
 								<p style="margin:.35rem 0 0;">{item.created_at} · {item.ip_address ?? 'unknown IP'}</p>
 								<div class="actions" style="justify-content:flex-start; margin-top:.85rem;">
-									<a class="button secondary" href={`?auditAction=${data.auditFilters.action || ''}&auditEntity=${data.auditFilters.entityType || ''}&auditLog=${item.id}`}>Lihat detail</a>
+									<a class="button secondary" href={`?auditAction=${encodeURIComponent(data.auditFilters.action || '')}&auditEntity=${encodeURIComponent(data.auditFilters.entityType || '')}&auditEntityId=${data.auditFilters.entityId ?? ''}&auditQuery=${encodeURIComponent(data.auditFilters.query || '')}&auditPage=${data.auditPage}&auditLog=${item.id}`}>Lihat detail</a>
 								</div>
 							</div>
 						{/each}

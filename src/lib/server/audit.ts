@@ -3,6 +3,7 @@ import type { D1Database } from '$lib/server/db';
 
 export const ADMIN_AUDIT_RETENTION_DAYS = 30;
 export const ADMIN_AUDIT_MAX_ROWS = 250;
+export const ADMIN_AUDIT_PAGE_SIZE = 6;
 
 export type AdminMutationLog = {
 	id: number;
@@ -20,7 +21,10 @@ export type AdminMutationLog = {
 export type AdminMutationLogFilters = {
 	action?: string | null;
 	entityType?: string | null;
+	entityId?: number | null;
+	query?: string | null;
 	selectedId?: number | null;
+	page?: number | null;
 };
 
 export type AdminMutationLogSummary = {
@@ -28,9 +32,17 @@ export type AdminMutationLogSummary = {
 	availableActions: string[];
 	availableEntityTypes: string[];
 	selectedMutation: AdminMutationLog | null;
+	totalCount: number;
+	page: number;
+	pageSize: number;
+	totalPages: number;
+	rangeStart: number;
+	rangeEnd: number;
 	filters: {
 		action: string;
 		entityType: string;
+		entityId: number | null;
+		query: string;
 		selectedId: number | null;
 	};
 };
@@ -47,6 +59,44 @@ function requestMeta(event: RequestEvent) {
 	return {
 		ip: event.request.headers.get('cf-connecting-ip') ?? event.getClientAddress?.() ?? 'unknown',
 		userAgent: event.request.headers.get('user-agent') ?? 'unknown'
+	};
+}
+
+function normalizePositiveNumber(value: number | null | undefined, fallback = 1) {
+	if (!value || !Number.isFinite(value) || value < 1) return fallback;
+	return Math.floor(value);
+}
+
+function buildAuditWhereClause(filters: {
+	action: string;
+	entityType: string;
+	entityId: number | null;
+	query: string;
+}) {
+	const where: string[] = [];
+	const params: Array<string | number> = [];
+
+	if (filters.action) {
+		where.push(`action = ?${params.length + 1}`);
+		params.push(filters.action);
+	}
+	if (filters.entityType) {
+		where.push(`entity_type = ?${params.length + 1}`);
+		params.push(filters.entityType);
+	}
+	if (filters.entityId) {
+		where.push(`entity_id = ?${params.length + 1}`);
+		params.push(filters.entityId);
+	}
+	if (filters.query) {
+		where.push(`(LOWER(summary) LIKE ?${params.length + 1} OR LOWER(COALESCE(payload_json, '')) LIKE ?${params.length + 2})`);
+		const likeValue = `%${filters.query.toLowerCase()}%`;
+		params.push(likeValue, likeValue);
+	}
+
+	return {
+		whereSql: where.length ? `WHERE ${where.join(' AND ')}` : '',
+		params
 	};
 }
 
@@ -162,38 +212,48 @@ export async function listRecentAdminMutationLogs(db: D1Database | null = null, 
 export async function getAdminMutationLogSummary(
 	db: D1Database | null = null,
 	filters: AdminMutationLogFilters = {},
-	limit = 12
+	pageSize = ADMIN_AUDIT_PAGE_SIZE
 ): Promise<AdminMutationLogSummary> {
 	const fallback: AdminMutationLogSummary = {
 		recentMutations: [],
 		availableActions: [],
 		availableEntityTypes: [],
 		selectedMutation: null,
+		totalCount: 0,
+		page: 1,
+		pageSize,
+		totalPages: 1,
+		rangeStart: 0,
+		rangeEnd: 0,
 		filters: {
 			action: filters.action?.trim() ?? '',
 			entityType: filters.entityType?.trim() ?? '',
+			entityId: filters.entityId ?? null,
+			query: filters.query?.trim() ?? '',
 			selectedId: filters.selectedId ?? null
 		}
 	};
 
 	if (!db) return fallback;
 
-	const action = filters.action?.trim() ?? '';
-	const entityType = filters.entityType?.trim() ?? '';
+	const normalizedFilters = {
+		action: filters.action?.trim() ?? '',
+			entityType: filters.entityType?.trim() ?? '',
+			entityId: filters.entityId ?? null,
+			query: filters.query?.trim() ?? ''
+	};
 	const selectedId = filters.selectedId ?? null;
-	const where: string[] = [];
-	const params: Array<string | number> = [];
+	const requestedPage = normalizePositiveNumber(filters.page ?? 1, 1);
+	const { whereSql, params } = buildAuditWhereClause(normalizedFilters);
+	const totalResult = await db
+		.prepare(`SELECT COUNT(*) AS count FROM admin_mutation_logs ${whereSql}`)
+		.bind(...params)
+		.first<{ count: number }>();
+	const totalCount = Number(totalResult?.count ?? 0);
+	const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+	const page = Math.min(requestedPage, totalPages);
+	const offset = (page - 1) * pageSize;
 
-	if (action) {
-		where.push(`action = ?${params.length + 1}`);
-		params.push(action);
-	}
-	if (entityType) {
-		where.push(`entity_type = ?${params.length + 1}`);
-		params.push(entityType);
-	}
-
-	const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 	const recentResult = await db
 		.prepare(`
 			SELECT id, action, entity_type, entity_id, summary, payload_json, actor_label, ip_address, user_agent, created_at
@@ -201,8 +261,9 @@ export async function getAdminMutationLogSummary(
 			${whereSql}
 			ORDER BY datetime(created_at) DESC, id DESC
 			LIMIT ?${params.length + 1}
+			OFFSET ?${params.length + 2}
 		`)
-		.bind(...params, limit)
+		.bind(...params, pageSize, offset)
 		.all<AdminMutationLog>();
 
 	const recentMutations = recentResult.results ?? [];
@@ -227,14 +288,22 @@ export async function getAdminMutationLogSummary(
 		selectedMutation = recentMutations[0];
 	}
 
+	const rangeStart = totalCount === 0 ? 0 : offset + 1;
+	const rangeEnd = totalCount === 0 ? 0 : Math.min(offset + recentMutations.length, totalCount);
+
 	return {
 		recentMutations,
 		availableActions: (actionsResult.results ?? []).map((item) => item.action),
 		availableEntityTypes: (entityTypesResult.results ?? []).map((item) => item.entity_type),
 		selectedMutation,
+		totalCount,
+		page,
+		pageSize,
+		totalPages,
+		rangeStart,
+		rangeEnd,
 		filters: {
-			action,
-			entityType,
+			...normalizedFilters,
 			selectedId
 		}
 	};
