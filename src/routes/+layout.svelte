@@ -16,7 +16,7 @@
 	/>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="description" content={site.description} />
-	<meta name="robots" content="noindex, nofollow" />
+	<meta name="robots" content="index, follow" />
 </svelte:head>
 
 <div class="site-shell">
