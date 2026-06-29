@@ -38,6 +38,13 @@ export type PostInput = {
 	featured?: boolean;
 };
 
+export type PublishReadinessSummary = {
+	readyCount: number;
+	blockedCount: number;
+	readyPostIds: number[];
+	blockedPostIds: number[];
+};
+
 function normalizeStatus(status: string | null | undefined): PostStatus {
 	if (status === 'draft' || status === 'seo_review' || status === 'published') return status;
 	return 'draft';
@@ -239,6 +246,40 @@ export async function deletePost(id: number, db: D1Database | null = null) {
 	if (!db) return { id, stored: false };
 	await db.prepare(`DELETE FROM posts WHERE id = ?1`).bind(id).run();
 	return { id, stored: true };
+}
+
+export function isPostReadyForSeoReview(post: Pick<Post, 'title' | 'slug' | 'excerpt' | 'content' | 'tags'>) {
+	return Boolean(
+		post.title.trim() &&
+		post.slug.trim() &&
+		post.excerpt.trim().length >= 20 &&
+		post.content.trim().length >= 120 &&
+		post.tags.length >= 2
+	);
+}
+
+export function isPostReadyForPublish(post: Pick<Post, 'seo_title' | 'seo_description' | 'status' | 'content' | 'excerpt'>) {
+	return Boolean(
+		post.status === 'seo_review' &&
+		(post.seo_title ?? '').trim().length >= 20 &&
+		(post.seo_description ?? '').trim().length >= 50 &&
+		post.content.trim().length >= 300 &&
+		post.excerpt.trim().length >= 40
+	);
+}
+
+export function getPublishReadinessSummary(posts: Post[]): PublishReadinessSummary {
+	const readyPostIds = posts.filter((post) => isPostReadyForPublish(post)).map((post) => post.id);
+	const blockedPostIds = posts
+		.filter((post) => post.status === 'seo_review' && !isPostReadyForPublish(post))
+		.map((post) => post.id);
+
+	return {
+		readyCount: readyPostIds.length,
+		blockedCount: blockedPostIds.length,
+		readyPostIds,
+		blockedPostIds
+	};
 }
 
 export function listSeedPosts() {

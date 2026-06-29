@@ -19,7 +19,15 @@ import {
 	IDEMPOTENCY_RETENTION_SECONDS,
 	pruneExpiredIdempotencyRows
 } from '$lib/server/idempotency';
-import { createPost, deletePost, listPosts, updatePost } from '$lib/server/repositories/posts';
+import {
+	createPost,
+	deletePost,
+	getPublishReadinessSummary,
+	isPostReadyForPublish,
+	isPostReadyForSeoReview,
+	listPosts,
+	updatePost
+} from '$lib/server/repositories/posts';
 import { listSubmissions, updateSubmissionStatus } from '$lib/server/repositories/submissions';
 import { validatePostForm, validateSubmissionStatus } from '$lib/server/validation';
 
@@ -120,6 +128,9 @@ function buildDistributionSummary(posts: Awaited<ReturnType<typeof listPosts>>, 
 			.filter((item) => item.status === 'received' || item.status === 'reviewing')
 			.map((item) => item.updated_at ?? item.created_at)
 	);
+	const readyForSeoReviewIds = posts.filter((post) => post.status === 'draft' && isPostReadyForSeoReview(post)).map((post) => post.id);
+	const blockedDraftIds = posts.filter((post) => post.status === 'draft' && !isPostReadyForSeoReview(post)).map((post) => post.id);
+	const publishReadiness = getPublishReadinessSummary(posts);
 
 	const dominantCategory = Object.entries(
 		posts.reduce<Record<string, number>>((acc, post) => {
@@ -157,6 +168,16 @@ function buildDistributionSummary(posts: Awaited<ReturnType<typeof listPosts>>, 
 			}
 			: null,
 		dominantCategory: dominantCategory ? { name: dominantCategory[0], count: dominantCategory[1] } : null,
+		workflow: {
+			readyForSeoReviewCount: readyForSeoReviewIds.length,
+			blockedDraftCount: blockedDraftIds.length,
+			readyForSeoReviewIds,
+			blockedDraftIds,
+			readyForPublishCount: publishReadiness.readyCount,
+			blockedSeoReviewCount: publishReadiness.blockedCount,
+			readyForPublishIds: publishReadiness.readyPostIds,
+			blockedSeoReviewIds: publishReadiness.blockedPostIds
+		},
 		aging: {
 			oldestDraftHours,
 			oldestDraftLabel: formatAgeBadge(oldestDraftHours),
@@ -171,11 +192,36 @@ function buildDistributionSummary(posts: Awaited<ReturnType<typeof listPosts>>, 
 			]
 		},
 		publishReadinessLabel:
-			statusCounts.seoReview > 0
-				? 'Needs review'
-				: statusCounts.draft > statusCounts.published
-					? 'Building queue'
-					: 'Stable'
+			publishReadiness.readyCount > 0
+				? 'Ready to publish'
+				: statusCounts.seoReview > 0
+					? 'Needs review'
+					: statusCounts.draft > statusCounts.published
+						? 'Building queue'
+						: 'Stable'
+	};
+}
+
+function buildEditorialWorkflowSummary(posts: Awaited<ReturnType<typeof listPosts>>) {
+	const draftPosts = posts.filter((post) => post.status === 'draft');
+	const seoReviewPosts = posts.filter((post) => post.status === 'seo_review');
+	const publishedPosts = posts.filter((post) => post.status === 'published');
+	const readyForSeoReviewIds = draftPosts.filter((post) => isPostReadyForSeoReview(post)).map((post) => post.id);
+	const blockedDraftIds = draftPosts.filter((post) => !isPostReadyForSeoReview(post)).map((post) => post.id);
+	const publishReadiness = getPublishReadinessSummary(posts);
+
+	return {
+		draftCount: draftPosts.length,
+		seoReviewCount: seoReviewPosts.length,
+		publishedCount: publishedPosts.length,
+		readyForSeoReviewCount: readyForSeoReviewIds.length,
+		blockedDraftCount: blockedDraftIds.length,
+		readyForSeoReviewIds,
+		blockedDraftIds,
+		readyForPublishCount: publishReadiness.readyCount,
+		blockedSeoReviewCount: publishReadiness.blockedCount,
+		readyForPublishIds: publishReadiness.readyPostIds,
+		blockedSeoReviewIds: publishReadiness.blockedPostIds
 	};
 }
 
@@ -421,6 +467,7 @@ export const load: ServerLoad = async (event) => {
 		warn: operationalRiskBoard.filter((item) => item.severity === 'warn').length,
 		info: operationalRiskBoard.filter((item) => item.severity === 'info').length
 	};
+	const editorialWorkflowSummary = buildEditorialWorkflowSummary(posts);
 	const headerStats = {
 		topWarningSeverity: topAdminWarning?.severity ?? 'info',
 		topWarningScore: topAdminWarning?.score ?? 0,
@@ -440,6 +487,7 @@ export const load: ServerLoad = async (event) => {
 		adminWarnings,
 		topAdminWarning,
 		headerStats,
+		editorialWorkflowSummary,
 		operationalRiskBoard,
 		operationalRiskSummary,
 		recentMutations: auditSummary.recentMutations,

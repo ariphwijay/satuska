@@ -76,6 +76,31 @@
 		<div class="stack">
 			<div class="admin-card" id="distribution-snapshot">
 				<h3>Distribution / handoff snapshot</h3>
+				<div class="admin-card" style="margin-bottom:1rem; border-style:dashed;" id="editorial-workflow-board">
+					<h3>Editorial workflow board</h3>
+					<div class="form-grid">
+						<div class="card">
+							<p style="margin:0 0 .35rem;"><strong>Draft intake</strong></p>
+							<p style="margin:0; font-size:1.35rem; font-weight:700;">{data.editorialWorkflowSummary.draftCount}</p>
+							<p style="margin:.35rem 0 0;">Ready for SEO review: {data.editorialWorkflowSummary.readyForSeoReviewCount}</p>
+						</div>
+						<div class="card">
+							<p style="margin:0 0 .35rem;"><strong>SEO review</strong></p>
+							<p style="margin:0; font-size:1.35rem; font-weight:700;">{data.editorialWorkflowSummary.seoReviewCount}</p>
+							<p style="margin:.35rem 0 0;">Ready publish: {data.editorialWorkflowSummary.readyForPublishCount}</p>
+						</div>
+						<div class="card">
+							<p style="margin:0 0 .35rem;"><strong>Blocked items</strong></p>
+							<p style="margin:0;">Draft blocked {data.editorialWorkflowSummary.blockedDraftCount}</p>
+							<p style="margin:.35rem 0 0;">SEO blocked {data.editorialWorkflowSummary.blockedSeoReviewCount}</p>
+						</div>
+						<div class="card">
+							<p style="margin:0 0 .35rem;"><strong>Published</strong></p>
+							<p style="margin:0; font-size:1.35rem; font-weight:700;">{data.editorialWorkflowSummary.publishedCount}</p>
+							<p style="margin:.35rem 0 0;">Workflow status: {data.distributionSummary.publishReadinessLabel}</p>
+						</div>
+					</div>
+				</div>
 				<div class="stack" style="gap:.65rem; margin-bottom:1rem;">
 					{#each data.adminWarnings as warning}
 						<div class={`info-strip severity-strip severity-${warning.severity}`}>
@@ -208,6 +233,7 @@
 
 			<div class="admin-card" id="edit-posts">
 				<h3>Edit existing posts</h3>
+				<p style="margin-top:0;">Quick workflow: draft yang cukup lengkap naik ke <strong>seo_review</strong>, lalu artikel review-ready bisa didorong ke <strong>published</strong>.</p>
 				<div class="stack">
 					{#each data.posts as post}
 						<form method="POST" action="?/updatePost" use:enhance class="card">
