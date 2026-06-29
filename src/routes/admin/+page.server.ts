@@ -124,62 +124,110 @@ function buildDistributionSummary(posts: Awaited<ReturnType<typeof listPosts>>, 
 	};
 }
 
+type AdminWarning = {
+	severity: 'critical' | 'warn' | 'info';
+	title: string;
+	detail: string;
+	score: number;
+};
+
 function buildAdminWarnings(
 	distributionSummary: ReturnType<typeof buildDistributionSummary>,
 	auditAnalytics: Awaited<ReturnType<typeof getAdminAuditAnalyticsSummary>>
 ) {
-	const warnings: Array<{ level: 'warn' | 'info'; title: string; detail: string }> = [];
+	const warnings: AdminWarning[] = [];
 
-	if (distributionSummary.statusCounts.seoReview >= 3) {
+	if (distributionSummary.statusCounts.seoReview >= 5) {
 		warnings.push({
-			level: 'warn',
+			severity: 'critical',
+			title: 'SEO review macet',
+			detail: `${distributionSummary.statusCounts.seoReview} post tertahan di seo_review.`,
+			score: 95
+		});
+	} else if (distributionSummary.statusCounts.seoReview >= 3) {
+		warnings.push({
+			severity: 'warn',
 			title: 'SEO review menumpuk',
-			detail: `${distributionSummary.statusCounts.seoReview} post masih di seo_review.`
+			detail: `${distributionSummary.statusCounts.seoReview} post masih di seo_review.`,
+			score: 72
 		});
 	}
 
-	if (distributionSummary.openSubmissionCount >= 4) {
+	if (distributionSummary.openSubmissionCount >= 6) {
 		warnings.push({
-			level: 'warn',
+			severity: 'critical',
+			title: 'Submission open sangat tinggi',
+			detail: `${distributionSummary.openSubmissionCount} submission belum ditutup atau diproses.`,
+			score: 90
+		});
+	} else if (distributionSummary.openSubmissionCount >= 4) {
+		warnings.push({
+			severity: 'warn',
 			title: 'Submission open tinggi',
-			detail: `${distributionSummary.openSubmissionCount} submission masih butuh tindak lanjut.`
+			detail: `${distributionSummary.openSubmissionCount} submission masih butuh tindak lanjut.`,
+			score: 68
 		});
 	}
 
 	const publishGapHours = hoursSince(distributionSummary.lastPublishedPost?.publishedAt);
-	if (distributionSummary.statusCounts.published > 0 && publishGapHours !== null && publishGapHours >= 72) {
+	if (distributionSummary.statusCounts.published > 0 && publishGapHours !== null && publishGapHours >= 168) {
 		warnings.push({
-			level: 'info',
+			severity: 'warn',
+			title: 'Publish terlalu lama idle',
+			detail: `Post terakhir live sekitar ${publishGapHours} jam lalu.`,
+			score: 64
+		});
+	} else if (distributionSummary.statusCounts.published > 0 && publishGapHours !== null && publishGapHours >= 72) {
+		warnings.push({
+			severity: 'info',
 			title: 'Publish melambat',
-			detail: `Post terakhir live sekitar ${publishGapHours} jam lalu.`
+			detail: `Post terakhir live sekitar ${publishGapHours} jam lalu.`,
+			score: 38
 		});
 	}
 
-	if (distributionSummary.statusCounts.draft >= 5 && distributionSummary.statusCounts.published === 0) {
+	if (distributionSummary.statusCounts.draft >= 8 && distributionSummary.statusCounts.published === 0) {
 		warnings.push({
-			level: 'warn',
+			severity: 'critical',
+			title: 'Queue draft tersumbat',
+			detail: `${distributionSummary.statusCounts.draft} draft aktif tapi belum ada post published.`,
+			score: 88
+		});
+	} else if (distributionSummary.statusCounts.draft >= 5 && distributionSummary.statusCounts.published === 0) {
+		warnings.push({
+			severity: 'warn',
 			title: 'Queue draft belum tembus publish',
-			detail: `${distributionSummary.statusCounts.draft} draft aktif tapi belum ada post published.`
+			detail: `${distributionSummary.statusCounts.draft} draft aktif tapi belum ada post published.`,
+			score: 66
 		});
 	}
 
-	if (auditAnalytics.recentWindowLabel === 'busy' && auditAnalytics.last24HoursCount >= 8) {
+	if (auditAnalytics.last24HoursCount >= 14) {
 		warnings.push({
-			level: 'info',
+			severity: 'warn',
+			title: 'Mutation admin sangat padat',
+			detail: `${auditAnalytics.last24HoursCount} mutation tercatat dalam 24 jam terakhir.`,
+			score: 62
+		});
+	} else if (auditAnalytics.recentWindowLabel === 'busy' && auditAnalytics.last24HoursCount >= 8) {
+		warnings.push({
+			severity: 'info',
 			title: 'Mutation admin sedang padat',
-			detail: `${auditAnalytics.last24HoursCount} mutation tercatat dalam 24 jam terakhir.`
+			detail: `${auditAnalytics.last24HoursCount} mutation tercatat dalam 24 jam terakhir.`,
+			score: 34
 		});
 	}
 
 	if (warnings.length === 0) {
 		warnings.push({
-			level: 'info',
+			severity: 'info',
 			title: 'Panel sehat',
-			detail: 'Belum ada anomali utama yang perlu perhatian cepat.'
+			detail: 'Belum ada anomali utama yang perlu perhatian cepat.',
+			score: 0
 		});
 	}
 
-	return warnings.slice(0, 4);
+	return warnings.sort((a, b) => b.score - a.score).slice(0, 4);
 }
 
 export const load: ServerLoad = async (event) => {

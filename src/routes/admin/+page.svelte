@@ -60,8 +60,12 @@
 				<h3>Distribution / handoff snapshot</h3>
 				<div class="stack" style="gap:.65rem; margin-bottom:1rem;">
 					{#each data.adminWarnings as warning}
-						<div class={`info-strip ${warning.level === 'warn' ? 'warning-strip' : ''}`}>
-							<strong>{warning.title}:</strong> {warning.detail}
+						<div class={`info-strip severity-strip severity-${warning.severity}`}>
+							<div style="display:flex; justify-content:space-between; gap:.75rem; align-items:center; flex-wrap:wrap;">
+								<strong>{warning.title}</strong>
+								<span class="badge">{warning.severity.toUpperCase()} · {warning.score}</span>
+							</div>
+							<p style="margin:.35rem 0 0;">{warning.detail}</p>
 						</div>
 					{/each}
 				</div>
@@ -369,3 +373,24 @@
 		</div>
 	</div>
 </section>
+
+<style>
+	:global(.severity-strip) {
+		border-left: 4px solid transparent;
+	}
+
+	:global(.severity-info) {
+		background: color-mix(in srgb, var(--panel, #dbeafe) 35%, white);
+		border-left-color: var(--panel-strong, #2563eb);
+	}
+
+	:global(.severity-warn) {
+		background: color-mix(in srgb, var(--warning, #f59e0b) 12%, white);
+		border-left-color: var(--warning, #f59e0b);
+	}
+
+	:global(.severity-critical) {
+		background: color-mix(in srgb, #ef4444 14%, white);
+		border-left-color: #dc2626;
+	}
+</style>
