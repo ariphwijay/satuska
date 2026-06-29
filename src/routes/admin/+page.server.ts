@@ -421,12 +421,21 @@ export const load: ServerLoad = async (event) => {
 		warn: operationalRiskBoard.filter((item) => item.severity === 'warn').length,
 		info: operationalRiskBoard.filter((item) => item.severity === 'info').length
 	};
+	const headerStats = {
+		topWarningSeverity: topAdminWarning?.severity ?? 'info',
+		topWarningScore: topAdminWarning?.score ?? 0,
+		topWarningTitle: topAdminWarning?.title ?? 'Panel sehat',
+		critical: operationalRiskSummary.critical,
+		warn: operationalRiskSummary.warn,
+		info: operationalRiskSummary.info
+	};
 	return {
 		posts,
 		submissions,
 		distributionSummary,
 		adminWarnings,
 		topAdminWarning,
+		headerStats,
 		operationalRiskBoard,
 		operationalRiskSummary,
 		recentMutations: auditSummary.recentMutations,
