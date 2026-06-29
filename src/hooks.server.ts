@@ -23,7 +23,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	} else if (event.url.pathname.startsWith('/api/')) {
 		response.headers.set('cache-control', 'public, max-age=60');
 	} else if (response.headers.get('content-type')?.includes('text/html')) {
-		response.headers.set('cache-control', 'public, max-age=300, s-maxage=3600');
+		response.headers.set('cache-control', 'no-store');
 	}
 	return response;
 };
