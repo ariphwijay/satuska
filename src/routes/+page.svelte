@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { categorySeeds, featuredPosts, site, submissionPackages } from '$lib/content';
+	import { categorySeeds, site, submissionPackages } from '$lib/content';
 
-	const heroPosts = featuredPosts().slice(0, 3);
+	let { data } = $props();
+	let heroPosts = $derived(data.heroPosts);
 </script>
 
 <svelte:head>
