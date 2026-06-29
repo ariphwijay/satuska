@@ -131,6 +131,19 @@
 						<p style="margin:.35rem 0 0;">Updated: {data.distributionSummary.latestSubmission?.updatedAt ?? 'Belum ada update submission'}</p>
 					</div>
 				</div>
+
+				<div class="admin-card aging-board" id="queue-aging-board">
+					<h3>Queue aging board</h3>
+					<div class="form-grid">
+						{#each data.distributionSummary.aging.board as item}
+							<div class={`card severity-${item.severity}`}>
+								<p style="margin:0 0 .35rem;"><strong>{item.label}</strong></p>
+								<p style="margin:0; font-size:1.45rem; font-weight:700;">{item.value}</p>
+								<p style="margin:.35rem 0 0; text-transform:capitalize;">State: {item.severity}</p>
+							</div>
+						{/each}
+					</div>
+				</div>
 			</div>
 
 			<div class="admin-card">
@@ -425,5 +438,13 @@
 	:global(.severity-critical) {
 		background: color-mix(in srgb, #ef4444 14%, white);
 		border-left-color: #dc2626;
+	}
+
+	.aging-board :global(.severity-healthy) {
+		background: color-mix(in srgb, #10b981 12%, white);
+	}
+
+	.aging-board :global(.severity-empty) {
+		background: color-mix(in srgb, #94a3b8 12%, white);
 	}
 </style>

@@ -66,6 +66,22 @@ function formatAgeBadge(hours: number | null) {
 	return `${days}h`;
 }
 
+function ageSeverity(hours: number | null, warnAt: number, criticalAt: number) {
+	if (hours === null) return 'empty';
+	if (hours >= criticalAt) return 'critical';
+	if (hours >= warnAt) return 'warn';
+	return 'healthy';
+}
+
+function ageSummary(label: string, hours: number | null, warnAt: number, criticalAt: number) {
+	return {
+		label,
+		hours,
+		value: formatAgeBadge(hours),
+		severity: ageSeverity(hours, warnAt, criticalAt)
+	};
+}
+
 function buildDistributionSummary(posts: Awaited<ReturnType<typeof listPosts>>, submissions: Awaited<ReturnType<typeof listSubmissions>>) {
 	const statusCounts = {
 		draft: posts.filter((post) => post.status === 'draft').length,
@@ -147,7 +163,12 @@ function buildDistributionSummary(posts: Awaited<ReturnType<typeof listPosts>>, 
 			oldestSeoReviewHours,
 			oldestSeoReviewLabel: formatAgeBadge(oldestSeoReviewHours),
 			oldestOpenSubmissionHours,
-			oldestOpenSubmissionLabel: formatAgeBadge(oldestOpenSubmissionHours)
+			oldestOpenSubmissionLabel: formatAgeBadge(oldestOpenSubmissionHours),
+			board: [
+				ageSummary('Draft queue', oldestDraftHours, 72, 120),
+				ageSummary('SEO review queue', oldestSeoReviewHours, 72, 120),
+				ageSummary('Open submissions', oldestOpenSubmissionHours, 48, 96)
+			]
 		},
 		publishReadinessLabel:
 			statusCounts.seoReview > 0
