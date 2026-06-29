@@ -38,7 +38,7 @@ export type SiteProfile = {
 
 export const site: SiteProfile = {
 	name: 'Satuska',
-	url: 'https://gushdesign.com',
+	url: 'https://www.gushdesign.com',
 	description:
 		'Home improvement blog engine for practical guides, decor inspiration, and guest-post monetization.',
 	tagline: 'Practical home improvement ideas, room guides, and publish-ready editorial workflows.',

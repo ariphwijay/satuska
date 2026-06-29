@@ -7,7 +7,19 @@ import {
 	isProtectedAdminPath
 } from '$lib/server/auth';
 
+const canonicalHost = 'www.gushdesign.com';
+const apexHost = 'gushdesign.com';
+
 export const handle: Handle = async ({ event, resolve }) => {
+	if (event.url.hostname === apexHost) {
+		const canonicalUrl = new URL(event.url);
+		canonicalUrl.hostname = canonicalHost;
+		return new Response(null, {
+			status: 308,
+			headers: { location: canonicalUrl.toString() }
+		});
+	}
+
 	event.locals.adminSession = await getAdminSession(event);
 
 	if (isProtectedAdminPath(event.url.pathname) && !event.locals.adminSession.authenticated) {
