@@ -1,6 +1,11 @@
+<script lang="ts">
+	import { site } from '$lib/content';
+</script>
+
 <svelte:head>
 	<title>Advertise — Satuska</title>
 	<meta name="description" content="Sponsored placements, partner discussions, and guest-post commercial surfaces for Satuska." />
+	<link rel="canonical" href={`${site.url}/advertise`} />
 </svelte:head>
 
 <section class="section">

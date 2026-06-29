@@ -1,2 +1,6 @@
-<svelte:head><title>About — Satuska</title></svelte:head>
+<script lang="ts">
+	import { site } from '$lib/content';
+</script>
+
+<svelte:head><title>About — Satuska</title><link rel="canonical" href={`${site.url}/about`} /></svelte:head>
 <section class="section"><p class="eyebrow">About</p><h1>Satuska publishes practical home improvement ideas for real rooms.</h1><p class="lede">We focus on useful guidance for renovations, decor, storage, lighting, outdoor spaces, and buying decisions, with clear editorial standards for contributors and relevant brand partners.</p></section>

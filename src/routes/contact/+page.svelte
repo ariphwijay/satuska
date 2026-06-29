@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { submissionPackages } from '$lib/content';
+	import { site, submissionPackages } from '$lib/content';
 
 	let { form }: { form: any } = $props();
 </script>
@@ -8,6 +8,7 @@
 <svelte:head>
 	<title>Contact — Satuska</title>
 	<meta name="description" content="Contact Satuska for editorial, partner, sponsored placement, and guest-post conversations." />
+	<link rel="canonical" href={`${site.url}/contact`} />
 </svelte:head>
 
 <section class="section">

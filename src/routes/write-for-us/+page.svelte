@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { submissionPackages } from '$lib/content';
+	import { site, submissionPackages } from '$lib/content';
 
 	let { form }: { form: any } = $props();
 </script>
@@ -8,6 +8,7 @@
 <svelte:head>
 	<title>Write for us — Satuska</title>
 	<meta name="description" content="Guest-post guidelines for Satuska: topical fit, editorial boundaries, and submission expectations." />
+	<link rel="canonical" href={`${site.url}/write-for-us`} />
 </svelte:head>
 
 <section class="section">
