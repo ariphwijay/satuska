@@ -7,14 +7,14 @@
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "aicopyrightlegal",
-			"database_id": "466e0c7e-3142-465a-bcc8-d4a893ad674e"
+			"database_name": "satuska-cms",
+			"database_id": "dd33deac-944e-4f85-a4ab-94246cb202f9"
 		}
 	],
 	"r2_buckets": [
 		{
 			"binding": "IMAGES",
-			"bucket_name": "aicopyrightlegal-images"
+			"bucket_name": "satuska-project-media"
 		}
 	]
 }

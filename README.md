@@ -1,42 +1,56 @@
-# sv
+# Satuska
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Satuska is a SvelteKit + Cloudflare Pages content site with a lightweight operator admin, public editorial pages, and server routes backed by Cloudflare D1.
 
-## Creating a project
+## Stack
 
-If you're seeing this, you've probably already done this step. Congrats!
+- SvelteKit
+- Tailwind CSS v4
+- Cloudflare Pages
+- Cloudflare D1
+- Cloudflare R2
 
-```sh
-# create a new project
-npx sv create my-app
-```
+## Main areas
 
-To recreate this project with the same configuration:
+- Public pages: home, blog, cases, laws, learn, tools, contact, write-for-us
+- Admin area: `/admin`
+- Login flow: `/login`, `/logout`
+- Public API routes under `/api/articles`, `/api/cases`, `/api/submissions`
+- Protected admin API routes under `/api/admin/*`
 
-```sh
-# recreate this project
-npx sv@0.16.1 create --template minimal --types ts --add tailwindcss="plugins:typography" sveltekit-adapter="adapter:cloudflare+cfTarget:pages" --install npm satuska
-```
+## Local development
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
+```bash
+cd ~/projects/satuska
+npm install
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+Useful commands:
 
-To create a production version of your app:
-
-```sh
+```bash
+npm run check
 npm run build
+npm run preview
 ```
 
-You can preview the production build with `npm run preview`.
+## Project structure
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- `src/routes/` — pages and API routes
+- `src/routes/admin/` — operator admin UI
+- `src/lib/server/` — auth, DB, repositories
+- `migrations/` — D1 schema + seed files
+- `static/` — static assets like `robots.txt`
+- `wrangler.jsonc` — Cloudflare bindings
+- `DEPLOY.md` — deployment + infrastructure notes
+
+## Deployment + infra
+
+For the current live Cloudflare resources, bindings, secrets, migration commands, and verification checklist, read:
+
+- [DEPLOY.md](./DEPLOY.md)
+
+## Notes
+
+- Admin auth depends on Cloudflare Pages secrets, not hardcoded credentials.
+- On this macOS 12 host, Wrangler type generation is limited by `workerd` runtime support, so `worker-configuration.d.ts` may be maintained manually for local checks.
