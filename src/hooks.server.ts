@@ -10,23 +10,30 @@ import {
 const canonicalHost = 'www.gushdesign.com';
 const apexHost = 'gushdesign.com';
 
+function applySecurityHeaders(response: Response) {
+	response.headers.set('x-content-type-options', 'nosniff');
+	response.headers.set('x-frame-options', 'DENY');
+	response.headers.set('referrer-policy', 'strict-origin-when-cross-origin');
+	return response;
+}
+
 export const handle: Handle = async ({ event, resolve }) => {
 	if (event.url.hostname === apexHost) {
 		const canonicalUrl = new URL(event.url);
 		canonicalUrl.hostname = canonicalHost;
-		return new Response(null, {
+		return applySecurityHeaders(new Response(null, {
 			status: 308,
 			headers: { location: canonicalUrl.toString() }
-		});
+		}));
 	}
 
 	event.locals.adminSession = await getAdminSession(event);
 
 	if (isProtectedAdminPath(event.url.pathname) && !event.locals.adminSession.authenticated) {
 		if (isAdminApiPath(event.url.pathname)) {
-			return adminApiUnauthorized();
+			return applySecurityHeaders(adminApiUnauthorized());
 		}
-		return adminLoginRedirect(event);
+		return applySecurityHeaders(adminLoginRedirect(event));
 	}
 
 	const response = await resolve(event);
@@ -42,5 +49,5 @@ export const handle: Handle = async ({ event, resolve }) => {
 	} else if (response.headers.get('content-type')?.includes('text/html')) {
 		response.headers.set('cache-control', 'no-store');
 	}
-	return response;
+	return applySecurityHeaders(response);
 };

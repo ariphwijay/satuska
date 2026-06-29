@@ -1,4 +1,4 @@
-import { json, redirect, type Cookies, type RequestEvent } from '@sveltejs/kit';
+import { json, type Cookies, type RequestEvent } from '@sveltejs/kit';
 
 const ADMIN_COOKIE = 'satuska_admin_session';
 const SESSION_MAX_AGE = 60 * 60 * 12;
@@ -92,11 +92,23 @@ export function sanitizeNext(next: string | null | undefined) {
 
 export function adminLoginRedirect(event: RequestEvent) {
 	const next = encodeURIComponent(`${event.url.pathname}${event.url.search}`);
-	return redirect(303, `/login?next=${next}`);
+	return new Response(null, {
+		status: 303,
+		headers: {
+			location: `/login?next=${next}`,
+			'cache-control': 'no-store'
+		}
+	});
 }
 
 export function adminApiUnauthorized() {
-	return json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+	return json(
+		{ ok: false, error: 'Unauthorized' },
+		{
+			status: 401,
+			headers: { 'cache-control': 'no-store' }
+		}
+	);
 }
 
 export function isProtectedAdminPath(pathname: string) {
