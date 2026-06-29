@@ -6,6 +6,8 @@ import {
 	startAdminSession,
 	validateAdminPassword
 } from '$lib/server/auth';
+import { getDb } from '$lib/server/db';
+import { enforceRateLimit } from '$lib/server/rate-limit';
 
 export const load: ServerLoad = async (event) => {
 	const next = sanitizeNext(event.url.searchParams.get('next'));
@@ -21,6 +23,17 @@ export const load: ServerLoad = async (event) => {
 
 export const actions: Actions = {
 	default: async (event) => {
+		const rateLimit = await enforceRateLimit(event, getDb(event), {
+			action: 'login',
+			limit: 5,
+			windowSeconds: 15 * 60
+		});
+		if (!rateLimit.allowed) {
+			return fail(429, {
+				error: `Terlalu banyak percobaan login. Coba lagi dalam ${rateLimit.retryAfterSeconds} detik.`
+			});
+		}
+
 		const formData = await event.request.formData();
 		const password = String(formData.get('password') ?? '');
 		const next = sanitizeNext(String(formData.get('next') ?? '/admin'));
