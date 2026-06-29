@@ -416,6 +416,11 @@ export const load: ServerLoad = async (event) => {
 	const adminWarnings = buildAdminWarnings(distributionSummary, auditAnalytics);
 	const topAdminWarning = adminWarnings[0] ?? null;
 	const operationalRiskBoard = buildOperationalRiskBoard(distributionSummary, auditAnalytics);
+	const operationalRiskSummary = {
+		critical: operationalRiskBoard.filter((item) => item.severity === 'critical').length,
+		warn: operationalRiskBoard.filter((item) => item.severity === 'warn').length,
+		info: operationalRiskBoard.filter((item) => item.severity === 'info').length
+	};
 	return {
 		posts,
 		submissions,
@@ -423,6 +428,7 @@ export const load: ServerLoad = async (event) => {
 		adminWarnings,
 		topAdminWarning,
 		operationalRiskBoard,
+		operationalRiskSummary,
 		recentMutations: auditSummary.recentMutations,
 		auditFilters: auditSummary.filters,
 		availableAuditActions: auditSummary.availableActions,

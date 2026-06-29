@@ -147,6 +147,11 @@
 
 				<div class="admin-card" id="operational-risk-board">
 					<h3>Operational risk board</h3>
+					<div class="meta" style="margin-bottom:1rem; gap:.6rem; flex-wrap:wrap;">
+						<span class="badge">critical {data.operationalRiskSummary.critical}</span>
+						<span class="badge">warn {data.operationalRiskSummary.warn}</span>
+						<span class="badge">info {data.operationalRiskSummary.info}</span>
+					</div>
 					<div class="stack" style="gap:.75rem;">
 						{#each data.operationalRiskBoard as item}
 							<div class={`card severity-${item.severity} ${item.isPrimary ? 'primary-risk-card' : ''}`}>
