@@ -17,6 +17,14 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="description" content={site.description} />
 	<meta name="robots" content="index, follow" />
+	<meta property="og:site_name" content={site.name} />
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content={site.name} />
+	<meta property="og:description" content={site.description} />
+	<meta property="og:url" content={site.url} />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content={site.name} />
+	<meta name="twitter:description" content={site.description} />
 </svelte:head>
 
 <div class="site-shell">

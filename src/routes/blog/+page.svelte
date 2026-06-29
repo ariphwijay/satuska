@@ -12,6 +12,20 @@
 		content="Home improvement posts, room guides, decor ideas, and commercial-intent articles ready for guest-post and affiliate expansion."
 	/>
 	<link rel="canonical" href={`${site.url}/blog`} />
+	<meta property="og:title" content={`Blog — ${site.name}`} />
+	<meta property="og:description" content="Home improvement posts, room guides, decor ideas, and commercial-intent articles ready for guest-post and affiliate expansion." />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content={`${site.url}/blog`} />
+	<meta name="twitter:card" content="summary_large_image" />
+	<script type="application/ld+json">
+		{JSON.stringify({
+			'@context': 'https://schema.org',
+			'@type': 'Blog',
+			name: `${site.name} Blog`,
+			description: 'Home improvement posts, room guides, decor ideas, and commercial-intent articles ready for guest-post and affiliate expansion.',
+			url: `${site.url}/blog`
+		})}
+	</script>
 </svelte:head>
 
 <section class="section">
