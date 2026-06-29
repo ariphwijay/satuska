@@ -57,6 +57,53 @@
 	<div class="admin-shell-grid">
 		<div class="stack">
 			<div class="admin-card">
+				<h3>Distribution / handoff snapshot</h3>
+				<div class="form-grid" style="margin-bottom:1rem;">
+					<div class="card">
+						<p style="margin:0 0 .35rem;"><strong>Publish queue</strong></p>
+						<div class="meta">
+							<span>draft {data.distributionSummary.statusCounts.draft}</span>
+							<span>seo_review {data.distributionSummary.statusCounts.seoReview}</span>
+							<span>published {data.distributionSummary.statusCounts.published}</span>
+						</div>
+						<p style="margin:.55rem 0 0;">Readiness: {data.distributionSummary.publishReadinessLabel}</p>
+					</div>
+					<div class="card">
+						<p style="margin:0 0 .35rem;"><strong>Submission flow</strong></p>
+						<div class="meta">
+							<span>open {data.distributionSummary.openSubmissionCount}</span>
+							<span>accepted {data.distributionSummary.submissionCounts.accepted}</span>
+							<span>rejected {data.distributionSummary.submissionCounts.rejected}</span>
+						</div>
+						<p style="margin:.55rem 0 0;">reviewing {data.distributionSummary.submissionCounts.reviewing} · received {data.distributionSummary.submissionCounts.received}</p>
+					</div>
+					<div class="card">
+						<p style="margin:0 0 .35rem;"><strong>Content mix</strong></p>
+						<p style="margin:0;">Featured {data.distributionSummary.statusCounts.featured}</p>
+						<p style="margin:.35rem 0 0;">Top category: {data.distributionSummary.dominantCategory ? `${data.distributionSummary.dominantCategory.name} · ${data.distributionSummary.dominantCategory.count}` : 'Belum ada data'}</p>
+					</div>
+					<div class="card">
+						<p style="margin:0 0 .35rem;"><strong>Last handoff</strong></p>
+						<p style="margin:0;">{data.distributionSummary.lastTouchedPost ? `${data.distributionSummary.lastTouchedPost.title} · ${data.distributionSummary.lastTouchedPost.updatedAt}` : 'Belum ada perubahan post'}</p>
+						<p style="margin:.35rem 0 0;">Latest submission: {data.distributionSummary.latestSubmission ? `${data.distributionSummary.latestSubmission.name} · ${data.distributionSummary.latestSubmission.status}` : 'Belum ada submission'}</p>
+					</div>
+				</div>
+
+				<div class="stack" style="gap:.75rem;">
+					<div class="card">
+						<p style="margin:0 0 .35rem;"><strong>Last published</strong></p>
+						<p style="margin:0;">{data.distributionSummary.lastPublishedPost ? `${data.distributionSummary.lastPublishedPost.title} (/blog/${data.distributionSummary.lastPublishedPost.slug})` : 'Belum ada post published'}</p>
+						<p style="margin:.35rem 0 0;">{data.distributionSummary.lastPublishedPost?.publishedAt ?? 'Belum ada tanggal publish'}</p>
+					</div>
+					<div class="card">
+						<p style="margin:0 0 .35rem;"><strong>Latest submission topic</strong></p>
+						<p style="margin:0;">{data.distributionSummary.latestSubmission?.topic ?? 'Belum ada topic masuk'}</p>
+						<p style="margin:.35rem 0 0;">Updated: {data.distributionSummary.latestSubmission?.updatedAt ?? 'Belum ada update submission'}</p>
+					</div>
+				</div>
+			</div>
+
+			<div class="admin-card">
 				<h3>Create post</h3>
 				<form method="POST" action="?/createPost" use:enhance>
 					<div class="form-grid">

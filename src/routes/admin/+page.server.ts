@@ -32,6 +32,92 @@ function positiveNumber(value: string | null) {
 	return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
+function normalizeIsoish(value: string | null | undefined) {
+	if (!value) return null;
+	const normalized = value.includes('T') ? value : value.replace(' ', 'T');
+	const timestamp = Date.parse(normalized);
+	return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function formatCompactDate(value: string | null | undefined) {
+	const timestamp = normalizeIsoish(value);
+	if (!timestamp) return 'Belum ada';
+	return new Date(timestamp).toISOString().slice(0, 16).replace('T', ' ');
+}
+
+function buildDistributionSummary(posts: Awaited<ReturnType<typeof listPosts>>, submissions: Awaited<ReturnType<typeof listSubmissions>>) {
+	const statusCounts = {
+		draft: posts.filter((post) => post.status === 'draft').length,
+		seoReview: posts.filter((post) => post.status === 'seo_review').length,
+		published: posts.filter((post) => post.status === 'published').length,
+		featured: posts.filter((post) => post.featured).length
+	};
+
+	const lastPublishedPost = posts
+		.filter((post) => post.status === 'published' && post.published_at)
+		.sort((a, b) => (normalizeIsoish(b.published_at) ?? 0) - (normalizeIsoish(a.published_at) ?? 0))[0] ?? null;
+
+	const lastTouchedPost = posts
+		.slice()
+		.sort((a, b) => (normalizeIsoish(b.updated_at) ?? 0) - (normalizeIsoish(a.updated_at) ?? 0))[0] ?? null;
+
+	const submissionCounts = {
+		received: submissions.filter((item) => item.status === 'received').length,
+		reviewing: submissions.filter((item) => item.status === 'reviewing').length,
+		accepted: submissions.filter((item) => item.status === 'accepted').length,
+		rejected: submissions.filter((item) => item.status === 'rejected').length
+	};
+
+	const openSubmissionCount = submissionCounts.received + submissionCounts.reviewing;
+	const latestSubmission = submissions
+		.slice()
+		.sort((a, b) => (normalizeIsoish(b.updated_at ?? b.created_at) ?? 0) - (normalizeIsoish(a.updated_at ?? a.created_at) ?? 0))[0] ?? null;
+
+	const dominantCategory = Object.entries(
+		posts.reduce<Record<string, number>>((acc, post) => {
+			const key = post.category?.trim() || 'Uncategorized';
+			acc[key] = (acc[key] ?? 0) + 1;
+			return acc;
+		}, {})
+	)
+		.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0] ?? null;
+
+	return {
+		statusCounts,
+		submissionCounts,
+		openSubmissionCount,
+		lastPublishedPost: lastPublishedPost
+			? {
+				title: lastPublishedPost.title,
+				slug: lastPublishedPost.slug,
+				publishedAt: formatCompactDate(lastPublishedPost.published_at)
+			}
+			: null,
+		lastTouchedPost: lastTouchedPost
+			? {
+				title: lastTouchedPost.title,
+				slug: lastTouchedPost.slug,
+				updatedAt: formatCompactDate(lastTouchedPost.updated_at)
+			}
+			: null,
+		latestSubmission: latestSubmission
+			? {
+				name: latestSubmission.name,
+				topic: latestSubmission.topic || latestSubmission.submission_type,
+				status: latestSubmission.status,
+				updatedAt: formatCompactDate(latestSubmission.updated_at ?? latestSubmission.created_at)
+			}
+			: null,
+		dominantCategory: dominantCategory ? { name: dominantCategory[0], count: dominantCategory[1] } : null,
+		publishReadinessLabel:
+			statusCounts.seoReview > 0
+				? 'Needs review'
+				: statusCounts.draft > statusCounts.published
+					? 'Building queue'
+					: 'Stable'
+	};
+}
+
 export const load: ServerLoad = async (event) => {
 	const db = getDb(event);
 	const auditSummaryPromise = getAdminMutationLogSummary(
@@ -54,9 +140,11 @@ export const load: ServerLoad = async (event) => {
 		getAdminAuditHousekeepingSummary(db),
 		getIdempotencyHousekeepingSummary(db)
 	]);
+	const distributionSummary = buildDistributionSummary(posts, submissions);
 	return {
 		posts,
 		submissions,
+		distributionSummary,
 		recentMutations: auditSummary.recentMutations,
 		auditFilters: auditSummary.filters,
 		availableAuditActions: auditSummary.availableActions,
