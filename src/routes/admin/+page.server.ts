@@ -427,7 +427,11 @@ export const load: ServerLoad = async (event) => {
 		topWarningTitle: topAdminWarning?.title ?? 'Panel sehat',
 		critical: operationalRiskSummary.critical,
 		warn: operationalRiskSummary.warn,
-		info: operationalRiskSummary.info
+		info: operationalRiskSummary.info,
+		baselineTopScore: 30,
+		baselineInfo: 3,
+		topScoreDelta: (topAdminWarning?.score ?? 0) - 30,
+		infoDelta: operationalRiskSummary.info - 3
 	};
 	return {
 		posts,

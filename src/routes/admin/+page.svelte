@@ -59,6 +59,7 @@
 			<p class="eyebrow" style="margin:0 0 .35rem;">Control header</p>
 			<h2 style="margin:0;">{data.headerStats.topWarningTitle}</h2>
 			<p style="margin:.45rem 0 0;">Risk totals cepat untuk operator: fokus warning + distribusi severity board.</p>
+			<p style="margin:.45rem 0 0;">Trend top score {data.headerStats.topScoreDelta >= 0 ? '+' : ''}{data.headerStats.topScoreDelta} · info delta {data.headerStats.infoDelta >= 0 ? '+' : ''}{data.headerStats.infoDelta}</p>
 		</div>
 		<div class="header-stat-grid">
 			<span class="badge severity-badge severity-badge-info">top {data.headerStats.topWarningScore}</span>
