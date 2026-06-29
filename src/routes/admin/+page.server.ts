@@ -1,10 +1,22 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, ServerLoad } from '@sveltejs/kit';
 import { categorySeeds } from '$lib/content';
-import { getAdminMutationLogSummary, writeAdminMutationLog } from '$lib/server/audit';
+import {
+	ADMIN_AUDIT_MAX_ROWS,
+	ADMIN_AUDIT_RETENTION_DAYS,
+	getAdminAuditHousekeepingSummary,
+	getAdminMutationLogSummary,
+	pruneAdminMutationLogs,
+	writeAdminMutationLog
+} from '$lib/server/audit';
 import { getDb } from '$lib/server/db';
 import { getOperatorErrorMessage } from '$lib/server/errors';
-import { guardAgainstDuplicateRequest } from '$lib/server/idempotency';
+import {
+	getIdempotencyHousekeepingSummary,
+	guardAgainstDuplicateRequest,
+	IDEMPOTENCY_RETENTION_SECONDS,
+	pruneExpiredIdempotencyRows
+} from '$lib/server/idempotency';
 import { createPost, deletePost, listPosts, updatePost } from '$lib/server/repositories/posts';
 import { listSubmissions, updateSubmissionStatus } from '$lib/server/repositories/submissions';
 import { validatePostForm, validateSubmissionStatus } from '$lib/server/validation';
@@ -29,10 +41,12 @@ export const load: ServerLoad = async (event) => {
 		},
 		16
 	);
-	const [posts, submissions, auditSummary] = await Promise.all([
+	const [posts, submissions, auditSummary, auditHousekeeping, idempotencyHousekeeping] = await Promise.all([
 		listPosts(db),
 		listSubmissions(db),
-		auditSummaryPromise
+		auditSummaryPromise,
+		getAdminAuditHousekeepingSummary(db),
+		getIdempotencyHousekeepingSummary(db)
 	]);
 	return {
 		posts,
@@ -42,6 +56,11 @@ export const load: ServerLoad = async (event) => {
 		availableAuditActions: auditSummary.availableActions,
 		availableAuditEntityTypes: auditSummary.availableEntityTypes,
 		selectedAuditMutation: auditSummary.selectedMutation,
+		auditHousekeeping,
+		idempotencyHousekeeping,
+		auditRetentionDays: ADMIN_AUDIT_RETENTION_DAYS,
+		auditMaxRows: ADMIN_AUDIT_MAX_ROWS,
+		idempotencyRetentionSeconds: IDEMPOTENCY_RETENTION_SECONDS,
 		categories: categorySeeds,
 		hasDb: Boolean(db)
 	};
@@ -138,5 +157,17 @@ export const actions: Actions = {
 			payload: parsed.data
 		});
 		return { submissionSuccess: `Submission #${parsed.data.id} diubah ke ${parsed.data.status}.` };
+	},
+
+	pruneHousekeeping: async (event) => {
+		const db = getDb(event);
+		if (!db) return fail(503, { housekeepingError: 'DB belum tersedia di environment ini.' });
+
+		const deletedIdempotencyRows = await pruneExpiredIdempotencyRows(db);
+		const deletedAuditRows = await pruneAdminMutationLogs(db);
+
+		return {
+			housekeepingSuccess: `Prune selesai. Idempotency dibersihkan ${deletedIdempotencyRows} row, audit dibersihkan ${deletedAuditRows} row.`
+		};
 	}
 };

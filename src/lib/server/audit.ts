@@ -1,6 +1,9 @@
 import type { RequestEvent } from '@sveltejs/kit';
 import type { D1Database } from '$lib/server/db';
 
+export const ADMIN_AUDIT_RETENTION_DAYS = 30;
+export const ADMIN_AUDIT_MAX_ROWS = 250;
+
 export type AdminMutationLog = {
 	id: number;
 	action: string;
@@ -32,10 +35,82 @@ export type AdminMutationLogSummary = {
 	};
 };
 
+export type AdminAuditHousekeepingSummary = {
+	totalRows: number;
+	oldRows: number;
+	rowsBeyondCap: number;
+	retentionDays: number;
+	maxRows: number;
+};
+
 function requestMeta(event: RequestEvent) {
 	return {
 		ip: event.request.headers.get('cf-connecting-ip') ?? event.getClientAddress?.() ?? 'unknown',
 		userAgent: event.request.headers.get('user-agent') ?? 'unknown'
+	};
+}
+
+export async function pruneAdminMutationLogs(
+	db: D1Database,
+	retentionDays = ADMIN_AUDIT_RETENTION_DAYS,
+	maxRows = ADMIN_AUDIT_MAX_ROWS
+) {
+	const result = await db
+		.prepare(`
+			DELETE FROM admin_mutation_logs
+			WHERE id IN (
+				SELECT id
+				FROM admin_mutation_logs
+				WHERE created_at < datetime('now', ?1)
+				AND id NOT IN (
+					SELECT id
+					FROM admin_mutation_logs
+					ORDER BY datetime(created_at) DESC, id DESC
+					LIMIT ?2
+				)
+			)
+		`)
+		.bind(`-${retentionDays} days`, maxRows)
+		.run();
+	return Number(result.meta?.changes ?? 0);
+}
+
+export async function getAdminAuditHousekeepingSummary(
+	db: D1Database | null = null,
+	retentionDays = ADMIN_AUDIT_RETENTION_DAYS,
+	maxRows = ADMIN_AUDIT_MAX_ROWS
+): Promise<AdminAuditHousekeepingSummary> {
+	if (!db) {
+		return {
+			totalRows: 0,
+			oldRows: 0,
+			rowsBeyondCap: 0,
+			retentionDays,
+			maxRows
+		};
+	}
+
+	const [totalResult, oldResult, rowsBeyondCapResult] = await Promise.all([
+		db.prepare(`SELECT COUNT(*) AS count FROM admin_mutation_logs`).first<{ count: number }>(),
+		db
+			.prepare(`SELECT COUNT(*) AS count FROM admin_mutation_logs WHERE created_at < datetime('now', ?1)`)
+			.bind(`-${retentionDays} days`)
+			.first<{ count: number }>(),
+		db
+			.prepare(`
+				SELECT CASE WHEN COUNT(*) > ?1 THEN COUNT(*) - ?1 ELSE 0 END AS count
+				FROM admin_mutation_logs
+			`)
+			.bind(maxRows)
+			.first<{ count: number }>()
+	]);
+
+	return {
+		totalRows: Number(totalResult?.count ?? 0),
+		oldRows: Number(oldResult?.count ?? 0),
+		rowsBeyondCap: Number(rowsBeyondCapResult?.count ?? 0),
+		retentionDays,
+		maxRows
 	};
 }
 
@@ -67,6 +142,7 @@ export async function writeAdminMutationLog(
 			meta.userAgent
 		)
 		.run();
+	await pruneAdminMutationLogs(db);
 }
 
 export async function listRecentAdminMutationLogs(db: D1Database | null = null, limit = 12) {

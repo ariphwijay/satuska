@@ -28,10 +28,12 @@
 	{#if form?.updateError}<div class="info-strip"><strong>Gagal update:</strong> {form.updateError}</div>{/if}
 	{#if form?.deleteError}<div class="info-strip"><strong>Gagal delete:</strong> {form.deleteError}</div>{/if}
 	{#if form?.submissionError}<div class="info-strip"><strong>Gagal review:</strong> {form.submissionError}</div>{/if}
+	{#if form?.housekeepingError}<div class="info-strip"><strong>Gagal housekeeping:</strong> {form.housekeepingError}</div>{/if}
 	{#if form?.createSuccess}<div class="info-strip"><strong>OK:</strong> {form.createSuccess}</div>{/if}
 	{#if form?.updateSuccess}<div class="info-strip"><strong>OK:</strong> {form.updateSuccess}</div>{/if}
 	{#if form?.deleteSuccess}<div class="info-strip"><strong>OK:</strong> {form.deleteSuccess}</div>{/if}
 	{#if form?.submissionSuccess}<div class="info-strip"><strong>OK:</strong> {form.submissionSuccess}</div>{/if}
+	{#if form?.housekeepingSuccess}<div class="info-strip"><strong>OK:</strong> {form.housekeepingSuccess}</div>{/if}
 
 	<div class="admin-shell-grid">
 		<div class="stack">
@@ -119,6 +121,34 @@
 			<div class="admin-card">
 				<h3>Submission packages</h3>
 				<ul class="list-clean">{#each submissionPackages as item}<li><strong>{item.label}</strong> — {item.description}</li>{/each}</ul>
+			</div>
+
+			<div class="admin-card">
+				<h3>Retention + housekeeping</h3>
+				<p style="margin-top:0;">Idempotency row expired otomatis dibuang saat guard jalan. Audit log dijaga maksimal <strong>{data.auditMaxRows}</strong> row aktif dengan retention target <strong>{data.auditRetentionDays} hari</strong>.</p>
+				<div class="stack" style="gap:.75rem;">
+					<div class="card">
+						<p style="margin:0 0 .45rem;"><strong>Idempotency</strong></p>
+						<div class="meta">
+							<span>active {data.idempotencyHousekeeping.activeRows}</span>
+							<span>expired {data.idempotencyHousekeeping.expiredRows}</span>
+							<span>older than {Math.floor(data.idempotencyRetentionSeconds / 3600)}h: {data.idempotencyHousekeeping.oldRows}</span>
+						</div>
+					</div>
+					<div class="card">
+						<p style="margin:0 0 .45rem;"><strong>Audit log</strong></p>
+						<div class="meta">
+							<span>total {data.auditHousekeeping.totalRows}</span>
+							<span>old {data.auditHousekeeping.oldRows}</span>
+							<span>over cap {data.auditHousekeeping.rowsBeyondCap}</span>
+						</div>
+					</div>
+					<form method="POST" action="?/pruneHousekeeping" use:enhance>
+						<div class="actions" style="justify-content:flex-start;">
+							<button class="button secondary" type="submit">Run prune now</button>
+						</div>
+					</form>
+				</div>
 			</div>
 
 			<div class="admin-card">
