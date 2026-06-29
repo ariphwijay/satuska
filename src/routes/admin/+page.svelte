@@ -3,6 +3,25 @@
 	import { site, submissionPackages } from '$lib/content';
 
 	let { data, form }: { data: any; form: any } = $props();
+	let copiedAuditId = $state<number | null>(null);
+
+	function formatAuditPayload(payload: string | null) {
+		if (!payload) return '';
+		try {
+			return JSON.stringify(JSON.parse(payload), null, 2);
+		} catch {
+			return payload;
+		}
+	}
+
+	async function copyAuditPayload(id: number, payload: string | null) {
+		if (!payload || typeof navigator === 'undefined' || !navigator.clipboard) return;
+		await navigator.clipboard.writeText(formatAuditPayload(payload));
+		copiedAuditId = id;
+		setTimeout(() => {
+			if (copiedAuditId === id) copiedAuditId = null;
+		}, 1800);
+	}
 </script>
 
 <svelte:head>
@@ -186,16 +205,30 @@
 
 				{#if data.selectedAuditMutation}
 					<div class="card" style="margin-bottom:1rem; border-style:dashed;">
-						<div class="meta">
+						<div class="meta" style="justify-content:space-between; align-items:flex-start; gap:.75rem; flex-wrap:wrap;">
+							<div class="meta">
 							<span class="badge">Selected #{data.selectedAuditMutation.id}</span>
 							<span>{data.selectedAuditMutation.action}</span>
 							<span>{data.selectedAuditMutation.entity_type}{data.selectedAuditMutation.entity_id ? ` #${data.selectedAuditMutation.entity_id}` : ''}</span>
+							</div>
+							<div class="actions" style="justify-content:flex-start; margin:0;">
+								{#if data.selectedAuditMutation.payload_json}
+									<button class="button secondary" type="button" onclick={() => copyAuditPayload(data.selectedAuditMutation.id, data.selectedAuditMutation.payload_json)}>
+										{copiedAuditId === data.selectedAuditMutation.id ? 'Payload tersalin' : 'Copy payload'}
+									</button>
+								{/if}
+							</div>
 						</div>
 						<p><strong>{data.selectedAuditMutation.summary}</strong></p>
-						<p style="margin:.35rem 0 0;">{data.selectedAuditMutation.created_at} · {data.selectedAuditMutation.ip_address ?? 'unknown IP'} · {data.selectedAuditMutation.user_agent ?? 'unknown agent'}</p>
+						<div class="form-grid" style="margin-top:1rem;">
+							<div class="card"><p style="margin:0 0 .35rem;"><strong>Waktu</strong></p><p style="margin:0;">{data.selectedAuditMutation.created_at}</p></div>
+							<div class="card"><p style="margin:0 0 .35rem;"><strong>IP</strong></p><p style="margin:0; word-break:break-word;">{data.selectedAuditMutation.ip_address ?? 'unknown IP'}</p></div>
+							<div class="card"><p style="margin:0 0 .35rem;"><strong>Actor</strong></p><p style="margin:0;">{data.selectedAuditMutation.actor_label ?? 'admin'}</p></div>
+							<div class="card"><p style="margin:0 0 .35rem;"><strong>User agent</strong></p><p style="margin:0; word-break:break-word;">{data.selectedAuditMutation.user_agent ?? 'unknown agent'}</p></div>
+						</div>
 						{#if data.selectedAuditMutation.payload_json}
 							<label style="margin-top:1rem; display:block;">Payload detail
-								<textarea rows="6" readonly>{data.selectedAuditMutation.payload_json}</textarea>
+								<textarea rows="10" readonly>{formatAuditPayload(data.selectedAuditMutation.payload_json)}</textarea>
 							</label>
 						{/if}
 					</div>
