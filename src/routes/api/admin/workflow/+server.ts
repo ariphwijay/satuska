@@ -22,6 +22,11 @@ export const GET: RequestHandler = async (event) => {
 
 	return json({
 		ok: true,
+		automation: {
+			workflowSummaryUrl: '/api/admin/workflow',
+			promoteUrl: '/api/admin/workflow/promote',
+			batchRunUrl: '/api/admin/workflow/run'
+		},
 		workflow: {
 			draft: {
 				total: draftPosts.length,
