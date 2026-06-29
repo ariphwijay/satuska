@@ -1,1 +1,0 @@
-<svelte:head><title>For Creators — AI Copyright Legal</title></svelte:head><section class="section"><p class="eyebrow">For creators</p><h1>Protect creative work in the AI era.</h1><p class="lede">Guides for artists, writers, musicians, photographers, and publishers navigating training data, licensing, takedowns, and disclosure.</p></section>
