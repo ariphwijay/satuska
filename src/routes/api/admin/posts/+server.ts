@@ -2,41 +2,23 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
 import { getDb } from '$lib/server/db';
 import { createPost, listPosts } from '$lib/server/repositories/posts';
+import { validatePostPayload } from '$lib/server/validation';
 
 export const GET: RequestHandler = async (event) => {
-	const posts = await listPosts(getDb(event));
+	const db = getDb(event);
+	if (!db) return json({ ok: false, error: 'DB belum tersedia di environment ini.' }, { status: 503 });
+	const posts = await listPosts(db);
 	return json(posts);
 };
 
 export const POST: RequestHandler = async (event) => {
+	const db = getDb(event);
+	if (!db) return json({ ok: false, error: 'DB belum tersedia di environment ini.' }, { status: 503 });
 	const body = await event.request.json().catch(() => null);
-	if (!body?.title || !body?.slug || !body?.content) {
-		return json({ ok: false, error: 'title, slug, and content are required' }, { status: 400 });
-	}
+	const parsed = validatePostPayload(body, 'create');
+	if (!parsed.ok) return json({ ok: false, error: parsed.error }, { status: 400 });
 
-	const result = await createPost(
-		{
-			title: body.title,
-			slug: body.slug,
-			excerpt: body.excerpt ?? '',
-			content: body.content,
-			category: body.category ?? 'General',
-			status: body.status ?? 'draft',
-			seo_title: body.seo_title,
-			seo_description: body.seo_description,
-			tags: Array.isArray(body.tags)
-				? body.tags
-				: String(body.tags ?? '')
-						.split(',')
-						.map((tag) => tag.trim())
-						.filter(Boolean),
-			read_time: body.read_time,
-			intent: body.intent ?? 'informational',
-			monetization: body.monetization ?? 'editorial',
-			featured: Boolean(body.featured)
-		},
-		getDb(event)
-	);
+	const result = await createPost(parsed.data, db);
 
 	return json({ ok: true, result }, { status: 201 });
 };

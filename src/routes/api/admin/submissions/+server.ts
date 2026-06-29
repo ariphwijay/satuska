@@ -4,6 +4,8 @@ import { getDb } from '$lib/server/db';
 import { listSubmissions } from '$lib/server/repositories/submissions';
 
 export const GET: RequestHandler = async (event) => {
-	const submissions = await listSubmissions(getDb(event));
+	const db = getDb(event);
+	if (!db) return json({ ok: false, error: 'DB belum tersedia di environment ini.' }, { status: 503 });
+	const submissions = await listSubmissions(db);
 	return json(submissions);
 };

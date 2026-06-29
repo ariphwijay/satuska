@@ -2,27 +2,21 @@ import { error, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getDb } from '$lib/server/db';
 import { createSubmission } from '$lib/server/repositories/submissions';
+import { validateSubmissionPayload } from '$lib/server/validation';
 
 export const POST: RequestHandler = async (event) => {
+	const db = getDb(event);
+	if (!db) {
+		return json({ ok: false, error: 'DB belum tersedia di environment ini.' }, { status: 503 });
+	}
 	const body = await event.request.json().catch(() => null);
-	if (!body?.name || !body?.email || !body?.message) {
-		error(400, 'name, email, and message are required');
+	const mode = body?.submissionType === 'guest_post' ? 'write_for_us' : 'contact';
+	const parsed = validateSubmissionPayload(body, mode);
+	if (!parsed.ok) {
+		error(400, parsed.error);
 	}
 
-	const submission = await createSubmission(
-		{
-			name: body.name,
-			email: body.email,
-			company: body.company,
-			siteUrl: body.siteUrl,
-			targetUrl: body.targetUrl,
-			topic: body.topic,
-			message: body.message,
-			submissionType: body.submissionType,
-			desiredPackage: body.desiredPackage
-		},
-		getDb(event)
-	);
+	const submission = await createSubmission(parsed.data, db);
 
 	return json({ ok: true, submission }, { status: 201 });
 };

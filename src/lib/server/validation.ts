@@ -138,6 +138,12 @@ export function validateSubmissionStatus(formData: FormData): ValidationResult<{
 	return { ok: true, data: { id, status } };
 }
 
+export function validatePositiveId(value: unknown, label = 'ID'): ValidationResult<{ id: number }> {
+	const id = Number(String(value ?? '').trim());
+	if (!Number.isInteger(id) || id <= 0) return { ok: false, error: `${label} tidak valid.` };
+	return { ok: true, data: { id } };
+}
+
 export function validatePostForm(formData: FormData, mode: 'create' | 'update'): ValidationResult<PostInput & { id?: number }> {
 	const id = Number(String(formData.get('id') ?? '').trim());
 	if (mode === 'update' && (!Number.isInteger(id) || id <= 0)) {
@@ -189,4 +195,59 @@ export function validatePostForm(formData: FormData, mode: 'create' | 'update'):
 			featured: formData.get('featured') === 'on'
 		}
 	};
+}
+
+function appendPayloadValue(formData: FormData, key: string, value: unknown) {
+	if (value == null) return;
+	if (Array.isArray(value)) {
+		formData.set(key, value.map((item) => String(item ?? '')).join(', '));
+		return;
+	}
+	if (typeof value === 'boolean') {
+		if (value) formData.set(key, 'on');
+		return;
+	}
+	formData.set(key, String(value));
+}
+
+function payloadToFormData(payload: Record<string, unknown>) {
+	const formData = new FormData();
+	for (const [key, value] of Object.entries(payload)) {
+		appendPayloadValue(formData, key, value);
+	}
+	return formData;
+}
+
+export function validatePostPayload(
+	payload: Record<string, unknown> | null | undefined,
+	mode: 'create' | 'update',
+	id?: unknown
+): ValidationResult<PostInput & { id?: number }> {
+	if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+		return { ok: false, error: 'Payload post harus berupa object JSON.' };
+	}
+	const formData = payloadToFormData(payload);
+	if (mode === 'update') appendPayloadValue(formData, 'id', id);
+	return validatePostForm(formData, mode);
+}
+
+export function validateSubmissionPayload(
+	payload: Record<string, unknown> | null | undefined,
+	mode: 'contact' | 'write_for_us'
+): ValidationResult<SubmissionInput> {
+	if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+		return { ok: false, error: 'Payload submission harus berupa object JSON.' };
+	}
+	const formData = payloadToFormData(payload);
+	return validateSubmission(formData, mode);
+}
+
+export function validateSubmissionStatusPayload(
+	value: unknown,
+	id: unknown
+): ValidationResult<{ id: number; status: string }> {
+	const formData = new FormData();
+	appendPayloadValue(formData, 'id', id);
+	appendPayloadValue(formData, 'status', value);
+	return validateSubmissionStatus(formData);
 }
