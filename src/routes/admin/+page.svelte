@@ -147,10 +147,10 @@
 
 				<div class="admin-card" id="operational-risk-board">
 					<h3>Operational risk board</h3>
-					<div class="meta" style="margin-bottom:1rem; gap:.6rem; flex-wrap:wrap;">
-						<span class="badge">critical {data.operationalRiskSummary.critical}</span>
-						<span class="badge">warn {data.operationalRiskSummary.warn}</span>
-						<span class="badge">info {data.operationalRiskSummary.info}</span>
+					<div class="meta risk-summary-strip" style="margin-bottom:1rem; gap:.6rem; flex-wrap:wrap;">
+						<span class="badge severity-badge severity-badge-critical">critical {data.operationalRiskSummary.critical}</span>
+						<span class="badge severity-badge severity-badge-warn">warn {data.operationalRiskSummary.warn}</span>
+						<span class="badge severity-badge severity-badge-info">info {data.operationalRiskSummary.info}</span>
 					</div>
 					<div class="stack" style="gap:.75rem;">
 						{#each data.operationalRiskBoard as item}
@@ -472,6 +472,29 @@
 
 	.aging-board :global(.severity-empty) {
 		background: color-mix(in srgb, #94a3b8 12%, white);
+	}
+
+	.risk-summary-strip .severity-badge {
+		border: 1px solid transparent;
+		font-weight: 700;
+	}
+
+	.risk-summary-strip .severity-badge-critical {
+		background: #fee2e2;
+		border-color: #fca5a5;
+		color: #991b1b;
+	}
+
+	.risk-summary-strip .severity-badge-warn {
+		background: #fef3c7;
+		border-color: #fcd34d;
+		color: #92400e;
+	}
+
+	.risk-summary-strip .severity-badge-info {
+		background: #dbeafe;
+		border-color: #93c5fd;
+		color: #1d4ed8;
 	}
 
 	.primary-risk-card {
