@@ -106,7 +106,8 @@ export async function listPosts(db: D1Database | null = null) {
 
 export async function listPublishedPosts(db: D1Database | null = null) {
 	if (!db) return publishedPosts();
-	return (await listPosts(db)).filter((post) => post.status === 'published');
+	const livePublished = (await listPosts(db)).filter((post) => post.status === 'published');
+	return livePublished.length > 0 ? livePublished : publishedPosts();
 }
 
 export async function getPostById(id: number, db: D1Database | null = null) {
@@ -145,7 +146,8 @@ export async function getPostBySlug(slug: string, db: D1Database | null = null) 
 
 export async function getPublishedPostBySlug(slug: string, db: D1Database | null = null) {
 	const post = await getPostBySlug(slug, db);
-	return post?.status === 'published' ? post : null;
+	if (post?.status === 'published') return post;
+	return publishedPosts().find((item) => item.slug === slug) ?? null;
 }
 
 export async function createPost(input: PostInput, db: D1Database | null = null) {
