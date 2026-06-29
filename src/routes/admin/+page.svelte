@@ -56,7 +56,7 @@
 
 	<div class="admin-shell-grid">
 		<div class="stack">
-			<div class="admin-card">
+			<div class="admin-card" id="distribution-snapshot">
 				<h3>Distribution / handoff snapshot</h3>
 				<div class="stack" style="gap:.65rem; margin-bottom:1rem;">
 					{#each data.adminWarnings as warning}
@@ -66,6 +66,9 @@
 								<span class="badge">{warning.severity.toUpperCase()} · {warning.score}</span>
 							</div>
 							<p style="margin:.35rem 0 0;">{warning.detail}</p>
+							<div class="actions" style="justify-content:flex-start; margin-top:.7rem;">
+								<a class="button secondary" href={warning.ctaHref}>{warning.ctaLabel}</a>
+							</div>
 						</div>
 					{/each}
 				</div>
@@ -144,7 +147,7 @@
 				</form>
 			</div>
 
-			<div class="admin-card">
+			<div class="admin-card" id="edit-posts">
 				<h3>Edit existing posts</h3>
 				<div class="stack">
 					{#each data.posts as post}
@@ -228,7 +231,7 @@
 				</div>
 			</div>
 
-			<div class="admin-card">
+			<div class="admin-card" id="audit-trail">
 				<h3>Audit trail mutation terbaru</h3>
 				<div class="form-grid" style="margin-bottom:1rem;">
 					<div class="card">
@@ -348,7 +351,7 @@
 				{/if}
 			</div>
 
-			<div class="admin-card">
+			<div class="admin-card" id="submission-review">
 				<h3>Submission review</h3>
 				{#if data.submissions.length === 0}
 					<p>Belum ada submission di DB.</p>

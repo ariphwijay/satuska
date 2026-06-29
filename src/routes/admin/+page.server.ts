@@ -129,6 +129,8 @@ type AdminWarning = {
 	title: string;
 	detail: string;
 	score: number;
+	ctaLabel: string;
+	ctaHref: string;
 };
 
 function buildAdminWarnings(
@@ -142,14 +144,18 @@ function buildAdminWarnings(
 			severity: 'critical',
 			title: 'SEO review macet',
 			detail: `${distributionSummary.statusCounts.seoReview} post tertahan di seo_review.`,
-			score: 95
+			score: 95,
+			ctaLabel: 'Lihat post review',
+			ctaHref: '#edit-posts'
 		});
 	} else if (distributionSummary.statusCounts.seoReview >= 3) {
 		warnings.push({
 			severity: 'warn',
 			title: 'SEO review menumpuk',
 			detail: `${distributionSummary.statusCounts.seoReview} post masih di seo_review.`,
-			score: 72
+			score: 72,
+			ctaLabel: 'Review post',
+			ctaHref: '#edit-posts'
 		});
 	}
 
@@ -158,14 +164,18 @@ function buildAdminWarnings(
 			severity: 'critical',
 			title: 'Submission open sangat tinggi',
 			detail: `${distributionSummary.openSubmissionCount} submission belum ditutup atau diproses.`,
-			score: 90
+			score: 90,
+			ctaLabel: 'Buka submission',
+			ctaHref: '#submission-review'
 		});
 	} else if (distributionSummary.openSubmissionCount >= 4) {
 		warnings.push({
 			severity: 'warn',
 			title: 'Submission open tinggi',
 			detail: `${distributionSummary.openSubmissionCount} submission masih butuh tindak lanjut.`,
-			score: 68
+			score: 68,
+			ctaLabel: 'Triage submission',
+			ctaHref: '#submission-review'
 		});
 	}
 
@@ -175,14 +185,18 @@ function buildAdminWarnings(
 			severity: 'warn',
 			title: 'Publish terlalu lama idle',
 			detail: `Post terakhir live sekitar ${publishGapHours} jam lalu.`,
-			score: 64
+			score: 64,
+			ctaLabel: 'Cek publish queue',
+			ctaHref: '#distribution-snapshot'
 		});
 	} else if (distributionSummary.statusCounts.published > 0 && publishGapHours !== null && publishGapHours >= 72) {
 		warnings.push({
 			severity: 'info',
 			title: 'Publish melambat',
 			detail: `Post terakhir live sekitar ${publishGapHours} jam lalu.`,
-			score: 38
+			score: 38,
+			ctaLabel: 'Cek snapshot',
+			ctaHref: '#distribution-snapshot'
 		});
 	}
 
@@ -191,14 +205,18 @@ function buildAdminWarnings(
 			severity: 'critical',
 			title: 'Queue draft tersumbat',
 			detail: `${distributionSummary.statusCounts.draft} draft aktif tapi belum ada post published.`,
-			score: 88
+			score: 88,
+			ctaLabel: 'Buka draft queue',
+			ctaHref: '#edit-posts'
 		});
 	} else if (distributionSummary.statusCounts.draft >= 5 && distributionSummary.statusCounts.published === 0) {
 		warnings.push({
 			severity: 'warn',
 			title: 'Queue draft belum tembus publish',
 			detail: `${distributionSummary.statusCounts.draft} draft aktif tapi belum ada post published.`,
-			score: 66
+			score: 66,
+			ctaLabel: 'Lihat draft',
+			ctaHref: '#edit-posts'
 		});
 	}
 
@@ -207,14 +225,18 @@ function buildAdminWarnings(
 			severity: 'warn',
 			title: 'Mutation admin sangat padat',
 			detail: `${auditAnalytics.last24HoursCount} mutation tercatat dalam 24 jam terakhir.`,
-			score: 62
+			score: 62,
+			ctaLabel: 'Audit log',
+			ctaHref: '#audit-trail'
 		});
 	} else if (auditAnalytics.recentWindowLabel === 'busy' && auditAnalytics.last24HoursCount >= 8) {
 		warnings.push({
 			severity: 'info',
 			title: 'Mutation admin sedang padat',
 			detail: `${auditAnalytics.last24HoursCount} mutation tercatat dalam 24 jam terakhir.`,
-			score: 34
+			score: 34,
+			ctaLabel: 'Buka audit',
+			ctaHref: '#audit-trail'
 		});
 	}
 
@@ -223,7 +245,9 @@ function buildAdminWarnings(
 			severity: 'info',
 			title: 'Panel sehat',
 			detail: 'Belum ada anomali utama yang perlu perhatian cepat.',
-			score: 0
+			score: 0,
+			ctaLabel: 'Lihat snapshot',
+			ctaHref: '#distribution-snapshot'
 		});
 	}
 
